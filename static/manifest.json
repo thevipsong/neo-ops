@@ -1,0 +1,18 @@
+{
+  "name": "NEO-OPS // QNAP TS-466C 控制中心",
+  "short_name": "NEO-OPS",
+  "description": "QNAP TS-466C 极客运维与智能监控仪表盘",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06070a",
+  "theme_color": "#06070a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/static/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

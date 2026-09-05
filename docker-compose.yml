@@ -1,0 +1,30 @@
+services:
+  neo-ops:
+    build: .
+    image: neo-ops:latest
+    container_name: neo-ops
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - TZ=Asia/Shanghai
+      # --- qBittorrent Configuration (Optional) ---
+      - QB_URL=http://127.0.0.1:8080
+      - QB_USER=admin
+      - QB_PASS=
+      # --- AI Terminal Copilot Configuration (Optional) ---
+      # - GEMINI_API_KEY=your_gemini_api_key_here
+      # - LLM_PROVIDER=gemini
+      # - LLM_MODEL=gemini-3.8-flash
+      # - NAS_HOSTNAME=my-nas
+    volumes:
+      # Docker engine monitoring & container management
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Host hardware telemetry
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro
+      # Disk & Storage telemetry (Supports QNAP QTS / Standard Linux)
+      - /tmp/smart:/host/tmp/smart:ro
+      - /share:/host/share:ro
+      # Persistent configuration & data
+      - ./data:/data

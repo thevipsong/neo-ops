@@ -1,0 +1,25 @@
+# Sensitive configuration files (contains API keys and credentials)
+config.json
+.env
+*.env
+*.key
+*.pem
+
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Operating system & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Runtime Data mounts
+data/

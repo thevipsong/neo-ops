@@ -1,0 +1,10 @@
+{
+  "api_key": "",
+  "provider": "gemini",
+  "base_url": "",
+  "model": "gemini-3.8-flash",
+  "refresh_interval": 3,
+  "qb_url": "http://127.0.0.1:8080",
+  "qb_username": "admin",
+  "qb_password": ""
+}
