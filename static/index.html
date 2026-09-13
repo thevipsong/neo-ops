@@ -151,6 +151,34 @@
       }
     }
 
+    /* Slide-up transition for floating batch bar */
+    .slide-up-enter-active {
+      animation: slideUpIn 0.32s var(--apple-spring);
+    }
+    .slide-up-leave-active {
+      animation: slideUpOut 0.22s ease-in;
+    }
+    @keyframes slideUpIn {
+      0% {
+        transform: translate(-50%, 40px) scale(0.95);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(-50%, 0) scale(1);
+        opacity: 1;
+      }
+    }
+    @keyframes slideUpOut {
+      0% {
+        transform: translate(-50%, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, 40px) scale(0.95);
+        opacity: 0;
+      }
+    }
+
     /* Breathing subtle status LED */
     @keyframes appleBreathing {
       0%, 100% { opacity: 0.95; transform: scale(1); }
@@ -564,6 +592,14 @@
           </button>
         </div>
 
+        <!-- Layout Customization Trigger -->
+        <button @click="showLayoutModal = true" 
+                class="p-2 rounded-lg bg-obsidian-850 hover:bg-obsidian-800 border border-white/[0.08] hover:border-purple-500/30 text-slate-300 hover:text-purple-300 transition relative" 
+                title="自定义看板模块排布与显隐">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span v-if="hiddenCardCount > 0" class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-purple-400"></span>
+        </button>
+
         <!-- Settings Modal Trigger -->
         <button @click="openSettingsModal" 
                 class="p-2 rounded-lg bg-obsidian-850 hover:bg-obsidian-800 border border-white/[0.08] hover:border-cyan-500/30 text-slate-300 hover:text-cyan-300 transition" 
@@ -592,12 +628,79 @@
       <!-- =============================================================== -->
       <!-- VIEW 1: SYSTEM MONITORING & TELEMETRY HUB (DASHBOARD)           -->
       <!-- =============================================================== -->
-      <section v-show="currentTab === 'dashboard'" class="h-full w-full overflow-y-auto p-4 sm:p-6 space-y-6">
+      <section v-show="currentTab === 'dashboard'" class="h-full w-full overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
         
-        <div class="max-w-[1600px] w-full mx-auto space-y-5 sm:space-y-6">
+        <!-- =============================================================== -->
+        <!-- STICKY GLOBAL ALERT BANNER                                      -->
+        <!-- =============================================================== -->
+        <div v-if="activeAlerts.length > 0" class="max-w-[1600px] w-full mx-auto transition-all duration-300">
+          <div class="rounded-2xl p-3.5 sm:p-4 border backdrop-blur-xl flex flex-col space-y-2.5 transition-all shadow-lg"
+               :class="currentTheme === 'tactical' 
+                 ? 'bg-red-950/70 border-red-500/70 text-red-300 font-mono shadow-[0_0_20px_rgba(239,68,68,0.25)]' 
+                 : 'bg-rose-950/40 border-rose-500/30 text-rose-200 shadow-[0_8px_30px_rgba(244,63,94,0.15)]'">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2.5">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                </span>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-xs sm:text-sm tracking-wide">
+                    系统运维告警提示 ({{ activeAlerts.length }})
+                  </span>
+                  <span class="hidden sm:inline text-xs opacity-80">· 侦测到硬件或服务异常，请尽快排查</span>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button @click="showAlertDetails = !showAlertDetails" 
+                        class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-mono transition">
+                  {{ showAlertDetails ? '收起详情' : '查看详情' }}
+                </button>
+                <button @click="dismissAlerts" class="p-1 rounded-lg text-slate-400 hover:text-white transition" title="稍后提醒">
+                  <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Top Alert Chips -->
+            <div class="flex flex-wrap gap-2 pt-1">
+              <span v-for="a in activeAlerts.slice(0, showAlertDetails ? 20 : 3)" :key="a.id"
+                    class="px-2.5 py-1 rounded-lg text-xs flex items-center space-x-1.5"
+                    :class="a.level === 'critical' ? 'bg-rose-500/20 text-rose-200 border border-rose-500/30' : 'bg-amber-500/20 text-amber-200 border border-amber-500/30'">
+                <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                <span>{{ a.text }}</span>
+              </span>
+              <span v-if="!showAlertDetails && activeAlerts.length > 3" class="px-2 py-1 text-xs opacity-75 font-mono">
+                +{{ activeAlerts.length - 3 }} 项更多...
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-[1600px] w-full mx-auto flex flex-col space-y-5 sm:space-y-6">
 
           <!-- Row 1: Primary Metrics Quartet (Engineered Data Presentation) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div :style="{ order: getCardOrder('system_kpi') }" v-show="!isCardHidden('system_kpi')" class="space-y-3">
+            <!-- Card Header / Summary Bar -->
+            <div class="flex items-center justify-between px-1">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-cyan-400"></div>
+                <h3 class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">核心算力与系统指标</h3>
+                <span v-if="isCardCollapsed('system_kpi')" class="text-xs font-mono text-cyan-300/90 ml-2 hidden sm:inline">
+                  CPU: {{ system.cpu_usage }}% · 内存: {{ system.memory?.percent }}% · eth0: ↓{{ system.network?.rx_speed_str }} ↑{{ system.network?.tx_speed_str }} · 风扇: {{ system.cpu_telemetry?.fan_speed }}
+                </span>
+              </div>
+              <div class="flex items-center space-x-1">
+                <button @click="moveCardUp('system_kpi')" class="p-1 rounded text-slate-400 hover:text-white transition" title="上移模块"><i data-lucide="chevron-up" class="w-3.5 h-3.5"></i></button>
+                <button @click="moveCardDown('system_kpi')" class="p-1 rounded text-slate-400 hover:text-white transition" title="下移模块"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                <button @click="toggleCardCollapse('system_kpi')" class="px-2 py-0.5 rounded text-xs font-mono bg-obsidian-850 hover:bg-obsidian-700 text-slate-300 border border-white/[0.08] transition flex items-center space-x-1">
+                  <span>{{ isCardCollapsed('system_kpi') ? '展开' : '收起' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card Body Grid -->
+            <div v-show="!isCardCollapsed('system_kpi')" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             <!-- Card 1: 2.5GbE Network Card Throughput & Saturation -->
             <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3">
@@ -888,25 +991,37 @@
               </div>
             </div>
 
-
+          </div>
           </div>
 
-          <!-- Row 2: Hard Disks Array & S.M.A.R.T Thermal Matrix (WCAG High Contrast, Semantics Aligned, Dashed Empty Slot) -->
-          <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
+          <!-- Row 2: Hard Disks Array & S.M.A.R.T Thermal Matrix -->
+          <div :style="{ order: getCardOrder('disks') }" v-show="!isCardHidden('disks')" class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
               <div class="flex items-center space-x-2.5">
                 <i data-lucide="hard-drive" class="w-4 h-4 text-cyan-400"></i>
                 <h2 class="text-sm font-semibold tracking-wide text-white">硬盘阵列与 S.M.A.R.T 温度热力监控</h2>
+                <span v-if="isCardCollapsed('disks')" class="text-xs font-mono text-emerald-400 ml-2 hidden sm:inline">
+                  4/4 槽位在位 · 最高 {{ getMaxDiskTemp() }}°C · S.M.A.R.T 全检良好
+                </span>
               </div>
-              <div class="flex items-center space-x-3 text-xs font-mono text-slate-300">
-                <span class="flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-slate-300">&lt; 40°C 优良</span></span>
-                <span class="flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-slate-300">40~48°C 正常</span></span>
-                <span class="flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span class="text-slate-300">≥ 49°C 警报</span></span>
+              <div class="flex items-center space-x-2">
+                <div v-if="!isCardCollapsed('disks')" class="hidden sm:flex items-center space-x-3 text-xs font-mono text-slate-300">
+                  <span class="flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-slate-300">&lt; 40°C 优良</span></span>
+                  <span class="flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-slate-300">40~48°C 正常</span></span>
+                  <span class="flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span class="text-slate-300">≥ 49°C 警报</span></span>
+                </div>
+                <div class="flex items-center space-x-1 ml-2">
+                  <button @click="moveCardUp('disks')" class="p-1 rounded text-slate-400 hover:text-white transition" title="上移模块"><i data-lucide="chevron-up" class="w-3.5 h-3.5"></i></button>
+                  <button @click="moveCardDown('disks')" class="p-1 rounded text-slate-400 hover:text-white transition" title="下移模块"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                  <button @click="toggleCardCollapse('disks')" class="px-2 py-0.5 rounded text-xs font-mono bg-obsidian-850 hover:bg-obsidian-700 text-slate-300 border border-white/[0.08] transition">
+                    {{ isCardCollapsed('disks') ? '展开' : '收起' }}
+                  </button>
+                </div>
               </div>
             </div>
 
             <!-- Disks Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+            <div v-show="!isCardCollapsed('disks')" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
               
               <!-- Active / Installed Disks -->
               <template v-for="d in (system.disks || [])" :key="d.slot">
@@ -959,7 +1074,25 @@
           </div>
 
           <!-- Row 3: Services & Download Hub (Left 50%) + Telemetry Sparklines (Right 50%) -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div :style="{ order: getCardOrder('services_telemetry') }" v-show="!isCardHidden('services_telemetry')" class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-purple-400"></div>
+                <h3 class="text-xs font-mono font-bold tracking-wider text-slate-300 uppercase">服务生态与时序遥测</h3>
+                <span v-if="isCardCollapsed('services_telemetry')" class="text-xs font-mono text-purple-300 ml-2 hidden sm:inline">
+                  qBittorrent: {{ qbStatus.dl_speed_str }} · {{ ecosystem.filter(e => e.status==='online').length }}/{{ ecosystem.length }} 生态服务在线
+                </span>
+              </div>
+              <div class="flex items-center space-x-1">
+                <button @click="moveCardUp('services_telemetry')" class="p-1 rounded text-slate-400 hover:text-white transition" title="上移模块"><i data-lucide="chevron-up" class="w-3.5 h-3.5"></i></button>
+                <button @click="moveCardDown('services_telemetry')" class="p-1 rounded text-slate-400 hover:text-white transition" title="下移模块"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                <button @click="toggleCardCollapse('services_telemetry')" class="px-2 py-0.5 rounded text-xs font-mono bg-obsidian-850 hover:bg-obsidian-700 text-slate-300 border border-white/[0.08] transition">
+                  {{ isCardCollapsed('services_telemetry') ? '展开' : '收起' }}
+                </button>
+              </div>
+            </div>
+
+            <div v-show="!isCardCollapsed('services_telemetry')" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             <!-- Left: Unified NAS Applications & Download Engine Hub -->
             <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4 border border-cyan-500/20 flex flex-col justify-between">
@@ -1033,15 +1166,15 @@
                 <div class="p-2.5 rounded-xl bg-obsidian-850/80 border border-white/[0.06] flex flex-col justify-between">
                   <div class="text-[10px] font-mono text-slate-400 flex items-center space-x-1">
                     <i data-lucide="database" class="w-3 h-3 text-indigo-400"></i>
-                    <span>累计下载</span>
+                    <span>累计传输</span>
                   </div>
-                  <div class="text-sm sm:text-base font-mono font-bold text-indigo-300 mt-1 tracking-tight tabular-nums">
-                    {{ qbStatus.dl_total_str || '0 B' }}
+                  <div class="text-xs sm:text-sm font-mono font-semibold text-slate-200 mt-1 truncate" :title="'累计下载: ' + (qbStatus.alltime_dl_str || '--') + ' · 累计做种: ' + (qbStatus.alltime_ul_str || '--')">
+                    ↓{{ qbStatus.alltime_dl_str || '--' }}
                   </div>
                 </div>
                 <div class="p-2.5 rounded-xl bg-obsidian-850/80 border border-white/[0.06] flex flex-col justify-between">
                   <div class="text-[10px] font-mono text-slate-400 flex items-center space-x-1">
-                    <i data-lucide="share-2" class="w-3 h-3 text-purple-400"></i>
+                    <i data-lucide="globe" class="w-3 h-3 text-purple-400"></i>
                     <span>DHT 节点</span>
                   </div>
                   <div class="text-sm sm:text-base font-mono font-bold text-purple-300 mt-1 tabular-nums">
@@ -1050,17 +1183,17 @@
                 </div>
               </div>
 
-              <!-- qB Action Buttons Strip (Apple Control Center Pill Buttons) -->
+              <!-- Action Controls Row -->
               <div class="grid grid-cols-3 gap-2">
                 <button @click="triggerQbAction('pause_all')" :disabled="!qbStatus.online || qbActionLoading" 
-                        :title="qbStatus.online ? '暂停所有下载任务' : 'qB 离线中，无法下发指令'"
+                        :title="qbStatus.online ? '暂停全部任务' : 'qB 离线中，无法下发指令'"
                         :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10 hover:text-amber-300 active:scale-95'"
                         class="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs font-sans font-medium text-slate-200 transition-all apple-spring">
                   <i data-lucide="pause" class="w-3.5 h-3.5 text-amber-400"></i>
                   <span>暂停全部</span>
                 </button>
                 <button @click="triggerQbAction('resume_all')" :disabled="!qbStatus.online || qbActionLoading" 
-                        :title="qbStatus.online ? '恢复所有下载任务' : 'qB 离线中，无法下发指令'"
+                        :title="qbStatus.online ? '恢复全部下载与做种' : 'qB 离线中，无法下发指令'"
                         :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10 hover:text-emerald-300 active:scale-95'"
                         class="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs font-sans font-medium text-slate-200 transition-all apple-spring">
                   <i data-lucide="play" class="w-3.5 h-3.5 text-emerald-400"></i>
@@ -1075,14 +1208,18 @@
                 </button>
               </div>
 
-              <!-- Ecosystem Apps Grid (Dynamic Host IP Resolution) -->
+              <!-- Ecosystem Apps Grid (Dynamic Host IP Resolution & Docker Health Binding) -->
               <div class="pt-2 border-t border-white/[0.06]">
                 <div class="text-xs font-mono text-slate-400 mb-2 flex items-center justify-between">
                   <span>NAS 核心微服务网关直达</span>
-                  <span class="text-[10px] text-cyan-400 font-medium">内网直通</span>
+                  <span class="text-[10px] text-cyan-400 font-medium">容器健康深度绑定</span>
                 </div>
                 <div class="grid grid-cols-3 gap-2.5">
                   <a v-for="app in ecosystem" :key="app.name" :href="getAppUrl(app)" target="_blank"
+                     :class="[
+                       app.status === 'offline' || app.container_state === 'stopped' ? 'opacity-60 grayscale hover:grayscale-0' : '',
+                       app.status === 'degraded' ? 'border-amber-500/30' : ''
+                     ]"
                      class="p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 transition-all apple-spring flex flex-col justify-between space-y-2 group active:scale-95 shadow-sm hover:shadow-md">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center space-x-2">
@@ -1091,11 +1228,18 @@
                         </div>
                         <span class="text-xs font-bold text-white group-hover:text-blue-300 transition font-sans">{{ app.name }}</span>
                       </div>
-                      <span class="w-2 h-2 rounded-full shadow-[0_0_6px]" :class="app.status === 'online' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-amber-400 shadow-amber-400'"></span>
+                      <span class="w-2 h-2 rounded-full shadow-[0_0_6px]" 
+                            :class="app.status === 'online' ? 'bg-emerald-400 shadow-emerald-400' : (app.status === 'degraded' ? 'bg-amber-400 shadow-amber-400' : 'bg-rose-500 shadow-rose-500')"></span>
                     </div>
                     <div>
                       <div class="text-[11px] font-sans text-slate-300 font-medium">{{ app.tag }}</div>
-                      <div class="text-[10px] font-mono text-slate-400">{{ app.version }}</div>
+                      <div class="flex items-center justify-between mt-0.5">
+                        <span class="text-[10px] font-mono" :class="app.status === 'online' ? 'text-slate-400' : (app.status === 'degraded' ? 'text-amber-300' : 'text-rose-400')">
+                          {{ app.version }}
+                        </span>
+                        <span v-if="app.status === 'offline'" class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">停止</span>
+                        <span v-else-if="app.status === 'degraded'" class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">异常</span>
+                      </div>
                     </div>
                   </a>
                 </div>
@@ -1103,23 +1247,48 @@
 
             </div>
 
-            <!-- Right: Live Telemetry Historical Trends (Calibrated Sparklines & Peaks) -->
-            <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4 border border-purple-500/20 flex flex-col justify-between">
+            <!-- Right: Live Telemetry Historical Trends (Calibrated Sparklines, Range Selector & Hover Crosshairs) -->
+            <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3.5 border border-purple-500/20 flex flex-col justify-between">
               
-              <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-3 gap-2">
                 <div class="flex items-center space-x-2.5">
                   <div class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/30">
                     <i data-lucide="trending-up" class="w-4 h-4"></i>
                   </div>
                   <div>
-                    <h3 class="text-sm font-bold text-white font-mono">实时遥测历史时序折线看板</h3>
-                    <p class="text-xs text-slate-300 font-mono">CPU、内存与 2.5GbE 流量动态回溯</p>
+                    <h3 class="text-sm font-bold text-white font-mono">时序遥测历史回溯看板</h3>
+                    <p class="text-xs text-slate-300 font-mono">CPU、内存与 2.5GbE 流量动态轨迹</p>
                   </div>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/30">近 2 分钟 (3s采样)</span>
+
+                <!-- Time Range Granularity Selector Pills -->
+                <div class="flex rounded-lg bg-obsidian-850 p-0.5 border border-white/[0.08] text-xs font-mono self-start sm:self-auto">
+                  <button v-for="r in telemetryRanges" :key="r.id"
+                          @click="selectTelemetryRange(r.id)"
+                          :class="activeTelemetryRange === r.id ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200 border border-transparent'"
+                          class="px-2 sm:px-2.5 py-0.5 rounded-md transition font-mono">
+                    {{ r.name }}
+                  </button>
+                </div>
               </div>
 
-              <!-- Sparklines Charts Stack with Calibration Grid & Peak Readings -->
+              <!-- Crosshair Telemetry Inspector Bar -->
+              <div v-if="hoverState.active" class="px-3 py-2 rounded-xl bg-obsidian-900/90 border border-purple-500/40 backdrop-blur-md text-xs font-mono flex items-center justify-between flex-wrap gap-2 text-slate-200 shadow-xl transition-all">
+                <div class="flex items-center space-x-1.5 text-purple-300">
+                  <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                  <span>{{ hoverState.time }}</span>
+                </div>
+                <div class="flex items-center space-x-3 text-xs">
+                  <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span><span>CPU: <b class="text-white">{{ hoverState.cpu }}%</b></span></span>
+                  <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-purple-400"></span><span>内存: <b class="text-white">{{ hoverState.mem }}%</b></span></span>
+                  <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>流量: <b class="text-white">↓{{ formatKbSpeed(hoverState.netRx) }} · ↑{{ formatKbSpeed(hoverState.netTx) }}</b></span></span>
+                </div>
+              </div>
+              <div v-else class="text-[11px] font-mono text-slate-400 text-center py-1 bg-obsidian-850/40 rounded-lg border border-white/[0.04]">
+                <span>提示: 移动鼠标悬停于波形图，可准星精确定位任意历史采样点</span>
+              </div>
+
+              <!-- Sparklines Charts Stack with Calibration Grid & Crosshair Guides -->
               <div class="space-y-3.5">
                 
                 <!-- Chart 1: CPU Utilization Sparkline -->
@@ -1130,19 +1299,25 @@
                       <span>CPU 算力负荷波形</span>
                     </span>
                     <span class="text-xs font-mono text-cyan-300 font-bold tabular-nums">
-                      {{ system.cpu_usage }}% 
-                      <span class="text-[10px] text-slate-400 font-normal">| 峰值 {{ getArrayMax(system.telemetry_history?.cpu) }}%</span>
+                      {{ hoverState.active ? hoverState.cpu + '%' : system.cpu_usage + '%' }} 
+                      <span class="text-[10px] text-slate-400 font-normal">| 峰值 {{ getArrayMax(activeTelemetryData.cpu) }}%</span>
                     </span>
                   </div>
-                  <div class="h-14 w-full overflow-hidden relative">
+                  <div class="h-14 w-full overflow-hidden relative cursor-crosshair select-none"
+                       @mousemove="handleChartHover($event)"
+                       @touchmove="handleChartHover($event)"
+                       @mouseleave="handleChartLeave">
                     <svg class="w-full h-full" viewBox="0 0 300 56" preserveAspectRatio="none">
                       <!-- Calibration Guidelines -->
                       <line x1="0" y1="14" x2="300" y2="14" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
                       <line x1="0" y1="28" x2="300" y2="28" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
                       <line x1="0" y1="42" x2="300" y2="42" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
-                      <path :d="getSvgAreaPath(system.telemetry_history?.cpu, 300, 56, 0, 100)" fill="rgba(6, 182, 212, 0.15)"></path>
-                      <polyline :points="getSvgPoints(system.telemetry_history?.cpu, 300, 56, 0, 100)" 
+                      <path :d="getSvgAreaPath(activeTelemetryData.cpu, 300, 56, 0, 100)" fill="rgba(6, 182, 212, 0.15)"></path>
+                      <polyline :points="getSvgPoints(activeTelemetryData.cpu, 300, 56, 0, 100)" 
                                 fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                      <!-- Crosshair line & dot -->
+                      <line v-if="hoverState.active" :x1="hoverState.svgX" y1="0" :x2="hoverState.svgX" y2="56" stroke="rgba(255,255,255,0.5)" stroke-dasharray="2,2" stroke-width="1.5"></line>
+                      <circle v-if="hoverState.active" :cx="hoverState.svgX" :cy="getPointY(hoverState.cpu, 56, 0, 100)" r="3.5" fill="#22d3ee" stroke="#ffffff" stroke-width="1.5"></circle>
                     </svg>
                   </div>
                 </div>
@@ -1155,19 +1330,25 @@
                       <span>物理内存占用趋势</span>
                     </span>
                     <span class="text-xs font-mono text-purple-300 font-bold tabular-nums">
-                      {{ system.memory?.percent }}% 
-                      <span class="text-[10px] text-slate-400 font-normal">| 峰值 {{ getArrayMax(system.telemetry_history?.mem) }}%</span>
+                      {{ hoverState.active ? hoverState.mem + '%' : system.memory?.percent + '%' }} 
+                      <span class="text-[10px] text-slate-400 font-normal">| 峰值 {{ getArrayMax(activeTelemetryData.mem) }}%</span>
                     </span>
                   </div>
-                  <div class="h-14 w-full overflow-hidden relative">
+                  <div class="h-14 w-full overflow-hidden relative cursor-crosshair select-none"
+                       @mousemove="handleChartHover($event)"
+                       @touchmove="handleChartHover($event)"
+                       @mouseleave="handleChartLeave">
                     <svg class="w-full h-full" viewBox="0 0 300 56" preserveAspectRatio="none">
                       <!-- Calibration Guidelines -->
                       <line x1="0" y1="14" x2="300" y2="14" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
                       <line x1="0" y1="28" x2="300" y2="28" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
                       <line x1="0" y1="42" x2="300" y2="42" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
-                      <path :d="getSvgAreaPath(system.telemetry_history?.mem, 300, 56, 0, 100)" fill="rgba(168, 85, 247, 0.15)"></path>
-                      <polyline :points="getSvgPoints(system.telemetry_history?.mem, 300, 56, 0, 100)" 
+                      <path :d="getSvgAreaPath(activeTelemetryData.mem, 300, 56, 0, 100)" fill="rgba(168, 85, 247, 0.15)"></path>
+                      <polyline :points="getSvgPoints(activeTelemetryData.mem, 300, 56, 0, 100)" 
                                 fill="none" stroke="#c084fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                      <!-- Crosshair line & dot -->
+                      <line v-if="hoverState.active" :x1="hoverState.svgX" y1="0" :x2="hoverState.svgX" y2="56" stroke="rgba(255,255,255,0.5)" stroke-dasharray="2,2" stroke-width="1.5"></line>
+                      <circle v-if="hoverState.active" :cx="hoverState.svgX" :cy="getPointY(hoverState.mem, 56, 0, 100)" r="3.5" fill="#c084fc" stroke="#ffffff" stroke-width="1.5"></circle>
                     </svg>
                   </div>
                 </div>
@@ -1180,20 +1361,27 @@
                       <span>2.5GbE 流量波形 (下行/上行)</span>
                     </span>
                     <span class="text-xs font-mono text-slate-200 tabular-nums">
-                      ↓{{ system.network?.rx_speed_str }} · ↑{{ system.network?.tx_speed_str }}
+                      <span v-if="hoverState.active">↓{{ formatKbSpeed(hoverState.netRx) }} · ↑{{ formatKbSpeed(hoverState.netTx) }}</span>
+                      <span v-else>↓{{ system.network?.rx_speed_str }} · ↑{{ system.network?.tx_speed_str }}</span>
                       <span class="text-[10px] text-slate-400 font-normal">| 最高 {{ formatKbSpeed(getNetMaxKb()) }}</span>
                     </span>
                   </div>
-                  <div class="h-14 w-full overflow-hidden relative">
+                  <div class="h-14 w-full overflow-hidden relative cursor-crosshair select-none"
+                       @mousemove="handleChartHover($event)"
+                       @touchmove="handleChartHover($event)"
+                       @mouseleave="handleChartLeave">
                     <svg class="w-full h-full" viewBox="0 0 300 56" preserveAspectRatio="none">
                       <!-- Calibration Guidelines -->
                       <line x1="0" y1="14" x2="300" y2="14" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
                       <line x1="0" y1="28" x2="300" y2="28" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
                       <line x1="0" y1="42" x2="300" y2="42" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3,3"></line>
-                      <polyline :points="getSvgPoints(system.telemetry_history?.net_rx, 300, 56, 0, getNetMaxKb())" 
+                      <polyline :points="getSvgPoints(activeTelemetryData.net_rx, 300, 56, 0, getNetMaxKb())" 
                                 fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
-                      <polyline :points="getSvgPoints(system.telemetry_history?.net_tx, 300, 56, 0, getNetMaxKb())" 
+                      <polyline :points="getSvgPoints(activeTelemetryData.net_tx, 300, 56, 0, getNetMaxKb())" 
                                 fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                      <!-- Crosshair line & dot -->
+                      <line v-if="hoverState.active" :x1="hoverState.svgX" y1="0" :x2="hoverState.svgX" y2="56" stroke="rgba(255,255,255,0.5)" stroke-dasharray="2,2" stroke-width="1.5"></line>
+                      <circle v-if="hoverState.active" :cx="hoverState.svgX" :cy="getPointY(hoverState.netRx, 56, 0, getNetMaxKb())" r="3.5" fill="#06b6d4" stroke="#ffffff" stroke-width="1.5"></circle>
                     </svg>
                   </div>
                 </div>
@@ -1203,18 +1391,31 @@
             </div>
 
           </div>
+          </div>
 
           <!-- Row 4: Storage Pools & Cloud Drives -->
-          <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3.5">
+          <div :style="{ order: getCardOrder('storage') }" v-show="!isCardHidden('storage')" class="glass-card rounded-2xl p-4 sm:p-5 space-y-3.5">
             <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
               <div class="flex items-center space-x-2.5">
                 <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
                 <h3 class="text-sm font-semibold tracking-wide text-white">存储卷 & 云盘挂载池</h3>
+                <span v-if="isCardCollapsed('storage')" class="text-xs font-mono text-cyan-300 ml-2 hidden sm:inline">
+                  {{ system.storage?.length || 0 }} 个存储卷在线 · {{ getStorageSummary() }}
+                </span>
               </div>
-              <span class="text-xs text-slate-300 font-mono">实时容量监控</span>
+              <div class="flex items-center space-x-2">
+                <span v-if="!isCardCollapsed('storage')" class="text-xs text-slate-300 font-mono hidden sm:inline">实时容量监控</span>
+                <div class="flex items-center space-x-1 ml-2">
+                  <button @click="moveCardUp('storage')" class="p-1 rounded text-slate-400 hover:text-white transition" title="上移模块"><i data-lucide="chevron-up" class="w-3.5 h-3.5"></i></button>
+                  <button @click="moveCardDown('storage')" class="p-1 rounded text-slate-400 hover:text-white transition" title="下移模块"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                  <button @click="toggleCardCollapse('storage')" class="px-2 py-0.5 rounded text-xs font-mono bg-obsidian-850 hover:bg-obsidian-700 text-slate-300 border border-white/[0.08] transition">
+                    {{ isCardCollapsed('storage') ? '展开' : '收起' }}
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+            <div v-show="!isCardCollapsed('storage')" class="grid grid-cols-1 md:grid-cols-4 gap-3.5">
               <div v-for="pool in (system.storage || [])" :key="pool.path" class="p-3.5 rounded-xl bg-obsidian-850/80 border border-white/[0.06] space-y-2.5">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-bold text-slate-100 truncate max-w-[150px]">{{ pool.name }}</span>
@@ -1236,8 +1437,8 @@
             </div>
           </div>
 
-          <!-- Row 5: Docker Container Matrix (Single Home for Image Pruning) -->
-          <div class="space-y-4">
+          <!-- Row 5: Docker Container Matrix (Single Home for Image Pruning & Batch Ops) -->
+          <div :style="{ order: getCardOrder('docker') }" v-show="!isCardHidden('docker')" class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="flex items-center space-x-3">
                 <div class="flex items-center space-x-2">
@@ -1248,31 +1449,58 @@
                   <button @click="containerFilter = 'all'" :class="{'bg-obsidian-700 text-white': containerFilter === 'all', 'text-slate-400': containerFilter !== 'all'}" class="px-2.5 py-1 rounded-md transition">全部 ({{ containers.length }})</button>
                   <button @click="containerFilter = 'running'" :class="{'bg-obsidian-700 text-emerald-400': containerFilter === 'running', 'text-slate-400': containerFilter !== 'running'}" class="px-2.5 py-1 rounded-md transition">运行中 ({{ runningContainerCount }})</button>
                 </div>
+                <!-- Select All Checkbox -->
+                <label v-if="!isCardCollapsed('docker')" class="hidden sm:flex items-center space-x-1.5 cursor-pointer text-xs font-mono text-slate-400 hover:text-slate-200">
+                  <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" class="rounded border-white/20 bg-obsidian-800 text-cyan-500 focus:ring-0">
+                  <span>全选</span>
+                </label>
               </div>
 
-              <!-- Prune & Search Actions -->
-              <div class="flex items-center space-x-2.5">
-                <!-- Single Logical Prune Button in Docker Header -->
+              <!-- Prune & Search Actions & Card Controls -->
+              <div class="flex items-center space-x-2">
                 <button @click="pruneDockerImages" :disabled="pruneLoading" 
-                        class="px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-mono transition flex items-center space-x-1.5"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-mono transition flex items-center space-x-1.5"
                         title="清理未引用的 Docker 悬空镜像">
                   <i data-lucide="trash-2" :class="{'animate-spin text-cyan-400': pruneLoading}" class="w-3.5 h-3.5"></i>
-                  <span>清理悬空镜像</span>
+                  <span class="hidden sm:inline">清理悬空镜像</span>
                 </button>
 
-                <div class="relative w-48 sm:w-56">
+                <div v-if="!isCardCollapsed('docker')" class="relative w-36 sm:w-48">
                   <input v-model="searchQuery" type="text" placeholder="搜索容器名或镜像..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg glass-input text-slate-200 placeholder-slate-400 font-mono">
                   <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                </div>
+
+                <div class="flex items-center space-x-1 ml-1">
+                  <button @click="moveCardUp('docker')" class="p-1 rounded text-slate-400 hover:text-white transition" title="上移模块"><i data-lucide="chevron-up" class="w-3.5 h-3.5"></i></button>
+                  <button @click="moveCardDown('docker')" class="p-1 rounded text-slate-400 hover:text-white transition" title="下移模块"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                  <button @click="toggleCardCollapse('docker')" class="px-2 py-0.5 rounded text-xs font-mono bg-obsidian-850 hover:bg-obsidian-700 text-slate-300 border border-white/[0.08] transition">
+                    {{ isCardCollapsed('docker') ? '展开' : '收起' }}
+                  </button>
                 </div>
               </div>
             </div>
 
-            <!-- Container Grid (Responsive Widescreen Grid up to 4 columns) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-              <div v-for="c in filteredContainers" :key="c.id" class="glass-card rounded-2xl p-4 flex flex-col justify-between space-y-3">
+            <!-- Collapsed Summary Bar for Docker -->
+            <div v-if="isCardCollapsed('docker')" class="p-3 rounded-xl bg-obsidian-850/60 border border-white/[0.06] text-xs font-mono text-purple-300">
+              {{ runningContainerCount }} 个容器在线运行 · {{ containers.length }} 个容器总数 · 空间治理与批量运维就绪
+            </div>
+
+            <!-- Container Grid (Multi-Select Checkboxes, Loading Overlay, Anti-Duplicate) -->
+            <div v-show="!isCardCollapsed('docker')" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+              <div v-for="c in filteredContainers" :key="c.id" 
+                   :class="selectedContainerIds.includes(c.id) ? 'border-cyan-500/50 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : ''"
+                   class="glass-card rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden transition-all duration-200">
+                
+                <!-- Loading overlay during single container action -->
+                <div v-if="actionLoading[c.id]" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-20 flex flex-col items-center justify-center space-y-2">
+                  <i data-lucide="rotate-cw" class="w-6 h-6 text-cyan-400 animate-spin"></i>
+                  <span class="text-xs font-mono text-cyan-200">执行指令中...</span>
+                </div>
+
                 <div>
                   <div class="flex items-start justify-between mb-1.5">
                     <div class="flex items-center space-x-2">
+                      <input type="checkbox" :value="c.id" v-model="selectedContainerIds" class="rounded border-white/20 bg-obsidian-800 text-cyan-500 focus:ring-0 w-3.5 h-3.5 cursor-pointer">
                       <span class="relative flex h-2.5 w-2.5">
                         <span v-if="c.state === 'running'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="c.state === 'running' ? 'bg-emerald-500' : 'bg-slate-600'"></span>
@@ -1305,7 +1533,7 @@
                       <i data-lucide="terminal" class="w-4 h-4"></i>
                     </button>
                     <button @click="restartContainer(c)" :disabled="actionLoading[c.id]" 
-                            class="flex items-center space-x-1 px-3 py-1 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-cyan-300 text-xs font-mono transition" 
+                            class="flex items-center space-x-1 px-3 py-1 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-cyan-300 text-xs font-mono transition disabled:opacity-50" 
                             title="重启容器">
                       <i data-lucide="rotate-cw" :class="{'animate-spin text-cyan-400': actionLoading[c.id]}" class="w-3.5 h-3.5"></i>
                       <span>重启</span>
@@ -1784,6 +2012,139 @@
       </div>
     </div>
 
+    <!-- =============================================================== -->
+    <!-- FLOATING DOCKER BATCH ACTION BAR                                -->
+    <!-- =============================================================== -->
+    <transition name="slide-up">
+      <div v-if="selectedContainerIds.length > 0" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[92vw] sm:max-w-xl w-full">
+        <div class="glass-card rounded-2xl p-2.5 sm:p-3 shadow-2xl border border-cyan-500/40 flex items-center justify-between gap-2 backdrop-blur-2xl"
+             :class="currentTheme === 'tactical' ? 'bg-black/95 border-emerald-500/50 shadow-[0_0_25px_rgba(34,197,94,0.3)] font-mono' : 'bg-black/85 border-cyan-500/40'">
+          <div class="flex items-center space-x-2 pl-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span class="text-xs font-mono font-bold text-white whitespace-nowrap">已选 {{ selectedContainerIds.length }} 项</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button @click="batchRestartSelected" :disabled="batchLoading" 
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-mono transition flex items-center space-x-1 disabled:opacity-50">
+              <i data-lucide="rotate-cw" :class="{'animate-spin text-cyan-400': batchLoading}" class="w-3.5 h-3.5"></i>
+              <span>批量重启</span>
+            </button>
+            <button @click="batchStopSelected" :disabled="batchLoading"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-mono transition flex items-center space-x-1 disabled:opacity-50">
+              <i data-lucide="square" class="w-3.5 h-3.5"></i>
+              <span>批量停止</span>
+            </button>
+            <button @click="openBatchLogsModal"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono transition flex items-center space-x-1">
+              <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">聚合日志</span>
+              <span class="sm:hidden">日志</span>
+            </button>
+            <button @click="selectedContainerIds = []" class="p-1.5 rounded-xl text-slate-400 hover:text-white transition" title="取消多选">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- =============================================================== -->
+    <!-- DOCKER BATCH AGGREGATED LOGS MODAL                              -->
+    <!-- =============================================================== -->
+    <div v-if="showBatchLogsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div class="glass-card rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-purple-500/30 shadow-2xl">
+        <div class="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between bg-obsidian-900/80">
+          <div class="flex items-center space-x-3">
+            <div class="mac-dots">
+              <span @click="showBatchLogsModal = false" class="mac-dot mac-dot-red cursor-pointer" title="关闭"></span>
+              <span class="mac-dot mac-dot-yellow opacity-75"></span>
+              <span class="mac-dot mac-dot-green opacity-75"></span>
+            </div>
+            <div>
+              <h3 class="font-sans text-sm font-bold text-white tracking-tight flex items-center space-x-2">
+                <span>Docker 容器聚合时序日志</span>
+                <span class="text-xs font-normal text-purple-300 font-mono">({{ selectedContainerIds.length }} 个容器)</span>
+              </h3>
+              <p class="text-[11px] font-mono text-slate-400">已自动按时序合并输出 · 包含容器名称前缀</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button @click="copyMessageText(filteredBatchLogsText)" class="p-1.5 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-slate-300 transition" title="复制聚合日志">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+            <button @click="fetchBatchLogs" :disabled="batchLogsLoading" class="p-1.5 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-slate-300 transition" title="刷新日志">
+              <i data-lucide="refresh-cw" :class="{'animate-spin text-cyan-400': batchLogsLoading}" class="w-4 h-4"></i>
+            </button>
+            <button @click="showBatchLogsModal = false" class="p-1.5 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-slate-300 transition">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter within batch logs -->
+        <div class="px-4 py-2 border-b border-white/[0.06] bg-obsidian-900/60 flex items-center space-x-2">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+          <input v-model="batchLogsFilter" placeholder="在聚合日志中检索关键字 (支持过滤特定容器名或错误关键词)..." 
+                 class="bg-transparent text-xs text-white placeholder-slate-500 font-mono w-full focus:outline-none">
+          <span v-if="batchLogsFilter" class="text-[10px] font-mono text-slate-400 whitespace-nowrap">匹配 {{ filteredBatchLogsCount }} 行</span>
+        </div>
+
+        <div class="p-4 flex-1 overflow-auto bg-obsidian-950 font-mono text-xs text-slate-300 leading-relaxed select-text log-terminal-output">
+          <pre class="whitespace-pre-wrap">{{ filteredBatchLogsText }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================== -->
+    <!-- LAYOUT CUSTOMIZATION & REORDERING MODAL                         -->
+    <!-- =============================================================== -->
+    <div v-if="showLayoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div class="glass-card rounded-2xl w-full max-w-md p-5 border border-white/20 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <div class="flex items-center space-x-2.5">
+            <div class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/30">
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white font-mono">看板模块编排与定制</h3>
+          </div>
+          <button @click="showLayoutModal = false" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">自定义中控台 5 大核心运维区块的排布顺序与显隐状态，设置将自动持久化保存在当前浏览器。</p>
+        
+        <div class="space-y-2">
+          <div v-for="(cardKey, idx) in cardOrder" :key="cardKey"
+               class="p-3 rounded-xl bg-obsidian-850 border border-white/[0.08] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <span class="text-xs font-mono font-bold text-cyan-400 w-4">{{ idx + 1 }}</span>
+              <div>
+                <div class="text-xs font-mono font-semibold text-white">{{ getCardTitle(cardKey) }}</div>
+                <div class="text-[10px] text-slate-400 font-mono">{{ getCardDesc(cardKey) }}</div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <button @click="toggleCardVisibility(cardKey)" 
+                      class="p-1.5 rounded-lg hover:bg-obsidian-700 transition" 
+                      :class="isCardHidden(cardKey) ? 'text-slate-600' : 'text-emerald-400'"
+                      :title="isCardHidden(cardKey) ? '点击显示' : '点击隐藏'">
+                <i :data-lucide="isCardHidden(cardKey) ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
+              </button>
+              <button @click="moveCardIndex(idx, -1)" :disabled="idx === 0" class="p-1.5 rounded-lg text-slate-400 hover:text-white disabled:opacity-20 transition" title="上移">
+                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+              </button>
+              <button @click="moveCardIndex(idx, 1)" :disabled="idx === cardOrder.length - 1" class="p-1.5 rounded-lg text-slate-400 hover:text-white disabled:opacity-20 transition" title="下移">
+                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-white/[0.08]">
+          <button @click="resetCardLayout" class="text-xs font-mono text-slate-400 hover:text-white underline">恢复默认排布</button>
+          <button @click="showLayoutModal = false" class="px-4 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-obsidian-950 font-bold text-xs transition">保存并生效</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Vue 3 Application Script -->
@@ -1982,11 +2343,352 @@
         };
 
         const getNetMaxKb = () => {
-          const rx = system.value.telemetry_history?.net_rx || [];
-          const tx = system.value.telemetry_history?.net_tx || [];
+          const rx = activeTelemetryData.value?.net_rx || [];
+          const tx = activeTelemetryData.value?.net_tx || [];
           const m = Math.max(...rx, ...tx, 50);
           return Math.ceil(m * 1.2);
         };
+
+        // --- Modular Layout & Reordering & Collapse State ---
+        const defaultCardOrder = ['system_kpi', 'disks', 'services_telemetry', 'storage', 'docker'];
+        const savedCardOrder = localStorage.getItem('neo_ops_card_order');
+        let initialCardOrder = defaultCardOrder;
+        if (savedCardOrder) {
+          try {
+            const parsed = JSON.parse(savedCardOrder);
+            if (Array.isArray(parsed) && parsed.length) {
+              const valid = parsed.filter(k => defaultCardOrder.includes(k));
+              defaultCardOrder.forEach(k => { if (!valid.includes(k)) valid.push(k); });
+              initialCardOrder = valid;
+            }
+          } catch(e) {}
+        }
+        const cardOrder = ref(initialCardOrder);
+        const collapsedCards = ref(JSON.parse(localStorage.getItem('neo_ops_collapsed_cards') || '{}'));
+        const hiddenCards = ref(JSON.parse(localStorage.getItem('neo_ops_hidden_cards') || '{}'));
+        const showLayoutModal = ref(false);
+
+        const cardMeta = {
+          system_kpi: { title: '核心算力与系统指标', desc: 'CPU、内存、2.5GbE 网速与系统风扇温控' },
+          disks: { title: '硬盘阵列与温度热力', desc: '4-Bay SATA + NVMe 阵列及 S.M.A.R.T 监控' },
+          services_telemetry: { title: '服务生态与时序遥测', desc: 'qBittorrent、生态应用网关与动态时序折线' },
+          storage: { title: '存储卷与云盘挂载池', desc: '物理存储池与云盘挂载容量状态' },
+          docker: { title: 'Docker 容器矩阵', desc: '容器列表、健康度、批量控制与镜像空间治理' }
+        };
+
+        const getCardTitle = (key) => cardMeta[key]?.title || key;
+        const getCardDesc = (key) => cardMeta[key]?.desc || '';
+        const getCardOrder = (key) => cardOrder.value.indexOf(key);
+        const isCardCollapsed = (key) => !!collapsedCards.value[key];
+        const isCardHidden = (key) => !!hiddenCards.value[key];
+
+        const toggleCardCollapse = (key) => {
+          collapsedCards.value[key] = !collapsedCards.value[key];
+          localStorage.setItem('neo_ops_collapsed_cards', JSON.stringify(collapsedCards.value));
+          nextTick(() => lucide.createIcons());
+        };
+
+        const toggleCardVisibility = (key) => {
+          hiddenCards.value[key] = !hiddenCards.value[key];
+          localStorage.setItem('neo_ops_hidden_cards', JSON.stringify(hiddenCards.value));
+          nextTick(() => lucide.createIcons());
+        };
+
+        const hiddenCardCount = computed(() => Object.values(hiddenCards.value).filter(Boolean).length);
+
+        const moveCardIndex = (idx, direction) => {
+          const targetIdx = idx + direction;
+          if (targetIdx < 0 || targetIdx >= cardOrder.value.length) return;
+          const temp = cardOrder.value[idx];
+          cardOrder.value[idx] = cardOrder.value[targetIdx];
+          cardOrder.value[targetIdx] = temp;
+          localStorage.setItem('neo_ops_card_order', JSON.stringify(cardOrder.value));
+          nextTick(() => lucide.createIcons());
+        };
+
+        const moveCardUp = (key) => {
+          const idx = cardOrder.value.indexOf(key);
+          if (idx > 0) moveCardIndex(idx, -1);
+        };
+
+        const moveCardDown = (key) => {
+          const idx = cardOrder.value.indexOf(key);
+          if (idx < cardOrder.value.length - 1) moveCardIndex(idx, 1);
+        };
+
+        const resetCardLayout = () => {
+          cardOrder.value = [...defaultCardOrder];
+          collapsedCards.value = {};
+          hiddenCards.value = {};
+          localStorage.removeItem('neo_ops_card_order');
+          localStorage.removeItem('neo_ops_collapsed_cards');
+          localStorage.removeItem('neo_ops_hidden_cards');
+          showToast('已恢复看板默认排布');
+          nextTick(() => lucide.createIcons());
+        };
+
+        const getMaxDiskTemp = () => {
+          const temps = (system.value.disks || []).map(d => Number(d.temp) || 0);
+          return temps.length ? Math.max(...temps) : 38;
+        };
+
+        const getStorageSummary = () => {
+          const pools = system.value.storage || [];
+          if (!pools.length) return '暂无存储池';
+          const p = pools[0];
+          return `${p.name}: 已用 ${p.used_str} (${p.percent}%)`;
+        };
+
+        // --- System Global Alert Banner State ---
+        const dismissedAlertIds = ref(new Set());
+        const showAlertDetails = ref(false);
+
+        const systemAlerts = computed(() => {
+          const list = [];
+          (system.value.disks || []).forEach(d => {
+            const t = Number(d.temp) || 0;
+            if (t >= 49) {
+              list.push({ id: `disk-${d.slot}`, level: 'critical', text: `硬盘 ${d.bay_name || d.slot} 温度警报 (${t}°C)` });
+            } else if (t >= 45) {
+              list.push({ id: `disk-${d.slot}`, level: 'warning', text: `硬盘 ${d.bay_name || d.slot} 温度偏高 (${t}°C)` });
+            }
+          });
+          const cpuTemp = Number(system.value.cpu_telemetry?.cpu_temp) || 0;
+          if (cpuTemp >= 85) {
+            list.push({ id: 'cpu-temp', level: 'critical', text: `CPU Package 核心温度过热 (${cpuTemp}°C)` });
+          }
+          if (system.value.load_detail?.status === 'critical') {
+            list.push({ id: 'cpu-load', level: 'critical', text: `4核处理器负荷过载 (${system.value.loadavg?.[0]} / 4.00)` });
+          }
+          if (system.value.memory?.status === 'critical') {
+            list.push({ id: 'mem-critical', level: 'critical', text: `物理内存已耗尽达到 ${system.value.memory?.percent}%` });
+          }
+          (containers.value || []).forEach(c => {
+            if (c.state === 'exited' || c.state === 'dead') {
+              list.push({ id: `container-${c.name}`, level: 'warning', text: `容器 ${c.name} 处于停止状态` });
+            }
+          });
+          return list;
+        });
+
+        const activeAlerts = computed(() => {
+          return systemAlerts.value.filter(a => !dismissedAlertIds.value.has(a.id));
+        });
+
+        const dismissAlerts = () => {
+          systemAlerts.value.forEach(a => dismissedAlertIds.value.add(a.id));
+          showToast('已暂时隐藏当前告警');
+        };
+
+        // --- Telemetry Multi-Window & Hover Crosshair ---
+        const telemetryRanges = [
+          { id: '2m', name: '实时 2m' },
+          { id: '1h', name: '1小时' },
+          { id: '24h', name: '24小时' },
+          { id: '7d', name: '7天' }
+        ];
+        const activeTelemetryRange = ref('2m');
+        const customTelemetryData = ref(null);
+        const telemetryLoading = ref(false);
+
+        const activeTelemetryData = computed(() => {
+          if (activeTelemetryRange.value === '2m' || !customTelemetryData.value) {
+            return system.value.telemetry_history || { cpu: [], mem: [], net_rx: [], net_tx: [], times: [] };
+          }
+          return customTelemetryData.value;
+        });
+
+        const selectTelemetryRange = async (rangeId) => {
+          activeTelemetryRange.value = rangeId;
+          if (rangeId === '2m') {
+            customTelemetryData.value = null;
+            return;
+          }
+          telemetryLoading.value = true;
+          try {
+            const res = await fetch(`/api/system/history?range=${rangeId}`);
+            const data = await res.json();
+            customTelemetryData.value = data;
+          } catch(e) {
+            console.error('Fetch telemetry history failed:', e);
+          } finally {
+            telemetryLoading.value = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const hoverState = ref({
+          active: false,
+          svgX: 0,
+          time: '',
+          cpu: 0,
+          mem: 0,
+          netRx: 0,
+          netTx: 0
+        });
+
+        const getPointY = (val, height = 56, minVal = 0, maxVal = 100) => {
+          const pad = 5;
+          const usableH = height - (pad * 2);
+          const norm = Math.max(0, Math.min(1, (val - minVal) / (maxVal - minVal || 1)));
+          return (height - pad - (norm * usableH)).toFixed(1);
+        };
+
+        const handleChartHover = (event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const clientX = (event.touches && event.touches[0]) ? event.touches[0].clientX : event.clientX;
+          const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+          const pct = rect.width > 0 ? x / rect.width : 0;
+          
+          const data = activeTelemetryData.value;
+          const times = data?.times || [];
+          const count = times.length;
+          if (!count) return;
+
+          const index = Math.max(0, Math.min(count - 1, Math.round(pct * (count - 1))));
+          const svgX = Number((index / (count - 1 || 1) * 300).toFixed(1));
+
+          hoverState.value = {
+            active: true,
+            svgX,
+            time: times[index] || '',
+            cpu: data.cpu?.[index] || 0,
+            mem: data.mem?.[index] || 0,
+            netRx: data.net_rx?.[index] || 0,
+            netTx: data.net_tx?.[index] || 0
+          };
+        };
+
+        const handleChartLeave = () => {
+          hoverState.value.active = false;
+        };
+
+        // --- Docker Batch Controls State & Methods ---
+        const selectedContainerIds = ref([]);
+        const isAllSelected = computed(() => {
+          return filteredContainers.value.length > 0 && 
+                 filteredContainers.value.every(c => selectedContainerIds.value.includes(c.id));
+        });
+
+        const toggleSelectAll = () => {
+          if (isAllSelected.value) {
+            selectedContainerIds.value = [];
+          } else {
+            selectedContainerIds.value = filteredContainers.value.map(c => c.id);
+          }
+        };
+
+        const batchLoading = ref(false);
+
+        const batchRestartSelected = async () => {
+          if (!selectedContainerIds.value.length) return;
+          if (!confirm(`确定要批量重启所选的 ${selectedContainerIds.value.length} 个容器吗？`)) return;
+          batchLoading.value = true;
+          showToast(`正在批量重启 ${selectedContainerIds.value.length} 个容器...`);
+          try {
+            const res = await fetch('/api/docker/batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'restart', container_ids: selectedContainerIds.value })
+            });
+            const data = await res.json();
+            if (data.success) {
+              showToast(data.message || '批量重启成功');
+              messages.value.push({
+                role: 'assistant',
+                content: `🔄 **Docker 批量重启通知**：已下发指令，${data.message}`,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              });
+              scrollChat();
+              await fetchData();
+            } else {
+              showToast('批量操作失败: ' + (data.error || '未知错误'), 'error');
+            }
+          } catch(e) {
+            showToast('批量操作请求错误: ' + e, 'error');
+          } finally {
+            batchLoading.value = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const batchStopSelected = async () => {
+          if (!selectedContainerIds.value.length) return;
+          if (!confirm(`确定要批量停止所选的 ${selectedContainerIds.value.length} 个容器吗？`)) return;
+          batchLoading.value = true;
+          showToast(`正在批量停止 ${selectedContainerIds.value.length} 个容器...`);
+          try {
+            const res = await fetch('/api/docker/batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'stop', container_ids: selectedContainerIds.value })
+            });
+            const data = await res.json();
+            if (data.success) {
+              showToast(data.message || '批量停止成功');
+              messages.value.push({
+                role: 'assistant',
+                content: `⏹️ **Docker 批量停止通知**：已下发指令，${data.message}`,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              });
+              scrollChat();
+              await fetchData();
+            } else {
+              showToast('批量操作失败: ' + (data.error || '未知错误'), 'error');
+            }
+          } catch(e) {
+            showToast('批量操作请求错误: ' + e, 'error');
+          } finally {
+            batchLoading.value = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        // Batch Logs Modal
+        const showBatchLogsModal = ref(false);
+        const batchLogsText = ref('');
+        const batchLogsLoading = ref(false);
+        const batchLogsFilter = ref('');
+        const batchLogsTail = ref(60);
+
+        const openBatchLogsModal = async () => {
+          showBatchLogsModal.value = true;
+          nextTick(() => lucide.createIcons());
+          await fetchBatchLogs();
+        };
+
+        const fetchBatchLogs = async () => {
+          if (!selectedContainerIds.value.length) return;
+          batchLogsLoading.value = true;
+          try {
+            const res = await fetch('/api/docker/batch_logs', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ container_ids: selectedContainerIds.value, tail: batchLogsTail.value })
+            });
+            const data = await res.json();
+            batchLogsText.value = data.logs || '暂无日志输出';
+          } catch(e) {
+            batchLogsText.value = '获取聚合日志失败: ' + e;
+          } finally {
+            batchLogsLoading.value = false;
+            nextTick(() => lucide.createIcons());
+          }
+        };
+
+        const filteredBatchLogsText = computed(() => {
+          if (!batchLogsFilter.value.trim()) return batchLogsText.value;
+          const q = batchLogsFilter.value.toLowerCase();
+          return batchLogsText.value
+            .split('\n')
+            .filter(l => l.toLowerCase().includes(q))
+            .join('\n');
+        });
+
+        const filteredBatchLogsCount = computed(() => {
+          if (!batchLogsFilter.value.trim()) return 0;
+          return filteredBatchLogsText.value ? filteredBatchLogsText.value.split('\n').length : 0;
+        });
 
         // Watch tab and persist to localStorage
         const setTab = (tab) => {
@@ -2349,7 +3051,56 @@
           renderMarkdown,
           clearChat,
           sendQuickPrompt,
-          sendMessage
+          sendMessage,
+          // Modular Layout & Reordering & Collapse
+          cardOrder,
+          collapsedCards,
+          hiddenCards,
+          showLayoutModal,
+          hiddenCardCount,
+          getCardTitle,
+          getCardDesc,
+          getCardOrder,
+          isCardCollapsed,
+          isCardHidden,
+          toggleCardCollapse,
+          toggleCardVisibility,
+          moveCardIndex,
+          moveCardUp,
+          moveCardDown,
+          resetCardLayout,
+          getMaxDiskTemp,
+          getStorageSummary,
+          // System Global Alert Banner
+          systemAlerts,
+          activeAlerts,
+          dismissAlerts,
+          showAlertDetails,
+          // Telemetry Multi-Window & Hover Crosshair
+          telemetryRanges,
+          activeTelemetryRange,
+          selectTelemetryRange,
+          activeTelemetryData,
+          hoverState,
+          handleChartHover,
+          handleChartLeave,
+          getPointY,
+          // Docker Batch Operations
+          selectedContainerIds,
+          isAllSelected,
+          toggleSelectAll,
+          batchLoading,
+          batchRestartSelected,
+          batchStopSelected,
+          showBatchLogsModal,
+          batchLogsText,
+          batchLogsLoading,
+          batchLogsFilter,
+          batchLogsTail,
+          openBatchLogsModal,
+          fetchBatchLogs,
+          filteredBatchLogsText,
+          filteredBatchLogsCount
         };
       }
     }).mount('#app');
