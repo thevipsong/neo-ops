@@ -15,7 +15,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -57,162 +57,296 @@
     }
   </script>
   <style>
+    /* --- APPLE AESTHETIC & FLUID DYNAMICS (HIG / macOS Sequoia) --- */
+    :root {
+      --apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Spring micro-interactions */
+    .apple-spring {
+      transition: all 0.32s var(--apple-spring);
+    }
+
+    button, a, .glass-card {
+      transition: all 0.28s var(--apple-spring);
+    }
+
+    button:active, a:active {
+      transform: scale(0.965);
+    }
+
+    .glass-card {
+      border-radius: 20px;
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.16),
+        0 8px 30px -4px rgba(0, 0, 0, 0.35);
+    }
+
+    .glass-card:hover {
+      transform: translateY(-2.5px) scale(1.004);
+      border-color: rgba(255, 255, 255, 0.26);
+      box-shadow: 
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.24),
+        0 16px 40px -8px rgba(0, 0, 0, 0.48),
+        0 0 24px -4px rgba(10, 132, 255, 0.15);
+    }
+
+    /* macOS Traffic Light Buttons */
+    .mac-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .mac-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      display: inline-block;
+    }
+    .mac-dot-red { background: #ff5f56; border: 0.5px solid #e0443e; }
+    .mac-dot-yellow { background: #ffbd2e; border: 0.5px solid #dea123; }
+    .mac-dot-green { background: #27c93f; border: 0.5px solid #1aab29; }
+
+    /* Dynamic Island notification animations */
+    .island-enter-active {
+      animation: dynamicIslandIn 0.38s var(--apple-spring);
+    }
+    .island-leave-active {
+      animation: dynamicIslandOut 0.25s ease-in;
+    }
+    @keyframes dynamicIslandIn {
+      0% {
+        transform: translate(-50%, -30px) scale(0.85);
+        opacity: 0;
+        filter: blur(8px);
+      }
+      70% {
+        transform: translate(-50%, 3px) scale(1.02);
+        opacity: 1;
+        filter: blur(0);
+      }
+      100% {
+        transform: translate(-50%, 0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+      }
+    }
+    @keyframes dynamicIslandOut {
+      0% {
+        transform: translate(-50%, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -20px) scale(0.9);
+        opacity: 0;
+      }
+    }
+
+    /* Breathing subtle status LED */
+    @keyframes appleBreathing {
+      0%, 100% { opacity: 0.95; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.92); }
+    }
+    .apple-pulse {
+      animation: appleBreathing 2.8s ease-in-out infinite;
+    }
+
     body {
       color: #e2e8f0;
       font-variant-numeric: tabular-nums;
       -moz-font-feature-settings: "tnum";
       -webkit-font-feature-settings: "tnum";
       font-feature-settings: "tnum";
-      transition: background-color 0.3s ease, color 0.3s ease;
+      transition: background-color 0.35s ease, color 0.35s ease;
     }
 
-    /* --- THEME 1: OBSIDIAN CYBER (Default) --- */
-    body, body.theme-obsidian {
-      background-color: #06070a;
+    /* ========================================================================= */
+    /* THEME 1: 苹果晶透 (Apple Liquid Glass - macOS Sequoia / VisionOS 旗舰美学) */
+    /* ========================================================================= */
+    body, body.theme-apple-glass {
+      background-color: #080a11;
       background-image: 
-        radial-gradient(ellipse 70% 40% at 50% -10%, rgba(6, 182, 212, 0.12), transparent),
-        radial-gradient(ellipse 50% 30% at 85% 90%, rgba(139, 92, 246, 0.08), transparent),
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        radial-gradient(ellipse 85% 55% at 18% -8%, rgba(10, 132, 255, 0.22), transparent 60%),
+        radial-gradient(ellipse 70% 48% at 85% 12%, rgba(191, 90, 242, 0.17), transparent 52%),
+        radial-gradient(ellipse 75% 55% at 50% 112%, rgba(56, 189, 248, 0.14), transparent 65%),
+        radial-gradient(ellipse 40% 35% at 92% 88%, rgba(48, 209, 88, 0.09), transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+      background-attachment: fixed;
+      color: #f5f5f7;
     }
-    body.theme-obsidian .glass-card, .glass-card {
-      background: linear-gradient(135deg, rgba(16, 20, 30, 0.8) 0%, rgba(9, 11, 17, 0.92) 100%);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    body.theme-apple-glass header {
+      background: rgba(13, 17, 26, 0.72) !important;
+      backdrop-filter: blur(36px) saturate(210%) !important;
+      -webkit-backdrop-filter: blur(36px) saturate(210%) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.35) !important;
     }
-    body.theme-obsidian .glass-card:hover, .glass-card:hover {
-      border-color: rgba(6, 182, 212, 0.35);
-      box-shadow: 0 10px 32px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(6, 182, 212, 0.12);
+    body.theme-apple-glass .glass-card, .glass-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(16, 21, 33, 0.65) !important;
+      backdrop-filter: blur(32px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(32px) saturate(190%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.2), 0 12px 36px -6px rgba(0, 0, 0, 0.45) !important;
+    }
+    body.theme-apple-glass .glass-card:hover, .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.32) !important;
+      box-shadow: inset 0 1px 2px 0 rgba(255, 255, 255, 0.3), 0 18px 45px -8px rgba(0, 0, 0, 0.55), 0 0 28px -4px rgba(10, 132, 255, 0.2) !important;
     }
 
-    /* --- THEME 2: TITANIUM INDUSTRIAL (Linear / Vercel Cold Slate) --- */
-    body.theme-titanium {
-      background-color: #090b10 !important;
-      background-image: 
-        radial-gradient(ellipse 60% 35% at 50% -10%, rgba(56, 189, 248, 0.06), transparent),
-        radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px) !important;
-      background-size: 100% 100%, 24px 24px !important;
-      color: #e6edf3 !important;
-    }
-    body.theme-titanium header {
-      background-color: rgba(13, 16, 23, 0.88) !important;
-      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-    }
-    body.theme-titanium .glass-card {
-      background: linear-gradient(135deg, rgba(18, 22, 31, 0.85) 0%, rgba(12, 15, 21, 0.95) 100%) !important;
-      border-color: rgba(255, 255, 255, 0.08) !important;
-    }
-    body.theme-titanium .glass-card:hover {
-      border-color: rgba(56, 189, 248, 0.4) !important;
-      box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.7), 0 0 12px -2px rgba(56, 189, 248, 0.1) !important;
-    }
-    body.theme-titanium .bg-obsidian-950 { background-color: #090b10 !important; }
-    body.theme-titanium .bg-obsidian-900 { background-color: #0d1017 !important; }
-    body.theme-titanium .bg-obsidian-850 { background-color: #131722 !important; }
-    body.theme-titanium .bg-obsidian-800 { background-color: #1a202f !important; }
-    body.theme-titanium .text-cyan-300 { color: #7dd3fc !important; }
-    body.theme-titanium .text-cyan-400 { color: #38bdf8 !important; }
-
-    /* --- THEME 3: NORDIC ARCTIC FROST (Polar Night & Aurora Green/Cyan) --- */
-    body.theme-nord {
-      background-color: #242933 !important;
-      background-image: 
-        radial-gradient(ellipse 70% 40% at 50% -10%, rgba(136, 192, 208, 0.12), transparent),
-        radial-gradient(ellipse 40% 30% at 85% 90%, rgba(163, 190, 140, 0.08), transparent),
-        linear-gradient(rgba(216, 222, 233, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(216, 222, 233, 0.02) 1px, transparent 1px) !important;
-      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px !important;
-      color: #eceff4 !important;
-    }
-    body.theme-nord header {
-      background-color: rgba(46, 52, 64, 0.88) !important;
-      border-bottom-color: rgba(216, 222, 233, 0.1) !important;
-    }
-    body.theme-nord .glass-card {
-      background: linear-gradient(135deg, rgba(46, 52, 64, 0.88) 0%, rgba(36, 41, 51, 0.95) 100%) !important;
-      border-color: rgba(216, 222, 233, 0.1) !important;
-    }
-    body.theme-nord .glass-card:hover {
-      border-color: rgba(136, 192, 208, 0.5) !important;
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(136, 192, 208, 0.18) !important;
-    }
-    body.theme-nord .bg-obsidian-950 { background-color: #1e222a !important; }
-    body.theme-nord .bg-obsidian-900 { background-color: #2e3440 !important; }
-    body.theme-nord .bg-obsidian-850 { background-color: #3b4252 !important; }
-    body.theme-nord .bg-obsidian-800 { background-color: #434c5e !important; }
-    body.theme-nord .text-cyan-300 { color: #88c0d0 !important; }
-    body.theme-nord .text-cyan-400 { color: #81a1c1 !important; }
-    body.theme-nord .text-emerald-300 { color: #a3be8c !important; }
-    body.theme-nord .text-emerald-400 { color: #a3be8c !important; }
-    body.theme-nord .bg-cyan-400 { background-color: #88c0d0 !important; }
-    body.theme-nord .bg-emerald-400 { background-color: #a3be8c !important; }
-
-    /* --- THEME 4: STEALTH TACTICAL RADAR (Charcoal & Night Vision Green) --- */
+    /* ========================================================================= */
+    /* THEME 2: 战术雷达 (Stealth Tactical Radar - 军规深炭黑 · 夜视全息雷达)       */
+    /* ========================================================================= */
     body.theme-tactical {
-      background-color: #070a07 !important;
+      background-color: #040705 !important;
       background-image: 
-        radial-gradient(ellipse 70% 40% at 50% -10%, rgba(34, 197, 94, 0.08), transparent),
-        radial-gradient(ellipse 50% 30% at 85% 90%, rgba(234, 179, 8, 0.06), transparent),
-        linear-gradient(rgba(74, 222, 128, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(74, 222, 128, 0.025) 1px, transparent 1px) !important;
-      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px !important;
+        radial-gradient(circle 900px at 50% 15%, rgba(34, 197, 94, 0.08), transparent 75%),
+        radial-gradient(ellipse 60% 40% at 85% 90%, rgba(234, 179, 8, 0.06), transparent),
+        radial-gradient(circle 450px at 15% 75%, rgba(16, 185, 129, 0.05), transparent 70%),
+        linear-gradient(rgba(34, 197, 94, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 197, 94, 0.04) 1px, transparent 1px) !important;
+      background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px !important;
+      background-attachment: fixed;
       color: #e2f2e2 !important;
     }
     body.theme-tactical header {
-      background-color: rgba(11, 17, 11, 0.88) !important;
-      border-bottom-color: rgba(74, 222, 128, 0.12) !important;
+      background: rgba(6, 12, 8, 0.88) !important;
+      backdrop-filter: blur(28px) !important;
+      -webkit-backdrop-filter: blur(28px) !important;
+      border-bottom: 1px solid rgba(34, 197, 94, 0.28) !important;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(74, 222, 128, 0.15) !important;
     }
     body.theme-tactical .glass-card {
-      background: linear-gradient(135deg, rgba(14, 22, 14, 0.85) 0%, rgba(8, 12, 8, 0.95) 100%) !important;
-      border-color: rgba(74, 222, 128, 0.12) !important;
+      background: linear-gradient(135deg, rgba(11, 20, 13, 0.9) 0%, rgba(5, 9, 6, 0.96) 100%) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border: 1px solid rgba(34, 197, 94, 0.24) !important;
+      box-shadow: inset 0 1px 1px 0 rgba(74, 222, 128, 0.18), 0 12px 32px -4px rgba(0, 0, 0, 0.8) !important;
     }
     body.theme-tactical .glass-card:hover {
-      border-color: rgba(74, 222, 128, 0.45) !important;
-      box-shadow: 0 10px 32px -10px rgba(0, 0, 0, 0.7), 0 0 15px -3px rgba(34, 197, 94, 0.18) !important;
+      border-color: rgba(74, 222, 128, 0.55) !important;
+      box-shadow: inset 0 1px 2px 0 rgba(74, 222, 128, 0.35), 0 16px 40px -6px rgba(0, 0, 0, 0.85), 0 0 24px -2px rgba(34, 197, 94, 0.25) !important;
     }
-    body.theme-tactical .bg-obsidian-950 { background-color: #050805 !important; }
-    body.theme-tactical .bg-obsidian-900 { background-color: #0b120b !important; }
-    body.theme-tactical .bg-obsidian-850 { background-color: #101a10 !important; }
-    body.theme-tactical .bg-obsidian-800 { background-color: #172417 !important; }
+    body.theme-tactical .bg-obsidian-950 { background-color: #030604 !important; }
+    body.theme-tactical .bg-obsidian-900 { background-color: #070e08 !important; }
+    body.theme-tactical .bg-obsidian-850 { background-color: #0e1a0f !important; }
+    body.theme-tactical .bg-obsidian-800 { background-color: #142615 !important; }
+    body.theme-tactical .bg-obsidian-700 { background-color: #1c331e !important; }
     body.theme-tactical .text-cyan-300 { color: #86efac !important; }
     body.theme-tactical .text-cyan-400 { color: #4ade80 !important; }
-    body.theme-tactical .bg-cyan-400 { background-color: #4ade80 !important; }
+    body.theme-tactical .bg-cyan-400 { background-color: #22c55e !important; }
+    body.theme-tactical .bg-cyan-500 { background-color: #16a34a !important; }
+    body.theme-tactical .text-purple-300, body.theme-tactical .text-purple-400 { color: #a3e635 !important; }
+    body.theme-tactical .bg-purple-500\/10 { background-color: rgba(163, 230, 53, 0.1) !important; }
+    body.theme-tactical .border-purple-500\/30 { border-color: rgba(163, 230, 53, 0.3) !important; }
+    body.theme-tactical .border-purple-500\/20 { border-color: rgba(163, 230, 53, 0.2) !important; }
+    body.theme-tactical .border-cyan-500\/30 { border-color: rgba(34, 197, 94, 0.35) !important; }
+    body.theme-tactical .border-cyan-500\/20 { border-color: rgba(34, 197, 94, 0.25) !important; }
+    body.theme-tactical .glass-input {
+      background: rgba(8, 15, 9, 0.9) !important;
+      border: 1px solid rgba(34, 197, 94, 0.25) !important;
+      color: #e2f2e2 !important;
+    }
+    body.theme-tactical .glass-input:focus {
+      border-color: #4ade80 !important;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.35) !important;
+    }
 
-    /* --- THEME 5: RETRO AMBER CRT (80s Vintage DEC / Phosphor Terminal) --- */
-    body.theme-amber {
-      background-color: #070501 !important;
-      background-image: 
-        radial-gradient(ellipse 70% 40% at 50% -10%, rgba(245, 158, 11, 0.12), transparent),
-        radial-gradient(ellipse 50% 30% at 85% 90%, rgba(217, 119, 6, 0.08), transparent),
-        linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px) !important;
-      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px !important;
-      color: #fef3c7 !important;
+    /* ========================================================================= */
+    /* THEME-SPECIFIC NAVIGATION & TELEMETRY CHART POLISH                        */
+    /* ========================================================================= */
+    .nav-tab-active-dashboard {
+      background: linear-gradient(135deg, rgba(10, 132, 255, 0.25) 0%, rgba(6, 182, 212, 0.15) 100%);
+      border-color: rgba(10, 132, 255, 0.45);
+      color: #60a5fa;
+      box-shadow: 0 0 16px rgba(10, 132, 255, 0.25);
     }
-    body.theme-amber header {
-      background-color: rgba(18, 13, 3, 0.88) !important;
-      border-bottom-color: rgba(245, 158, 11, 0.14) !important;
+    body.theme-tactical .nav-tab-active-dashboard {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.15) 100%) !important;
+      border-color: rgba(34, 197, 94, 0.45) !important;
+      color: #4ade80 !important;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.3) !important;
     }
-    body.theme-amber .glass-card {
-      background: linear-gradient(135deg, rgba(24, 17, 5, 0.85) 0%, rgba(12, 8, 2, 0.95) 100%) !important;
-      border-color: rgba(245, 158, 11, 0.14) !important;
+    .nav-tab-active-terminal {
+      background: linear-gradient(135deg, rgba(191, 90, 242, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%);
+      border-color: rgba(191, 90, 242, 0.45);
+      color: #d8b4fe;
+      box-shadow: 0 0 16px rgba(191, 90, 242, 0.25);
     }
-    body.theme-amber .glass-card:hover {
-      border-color: rgba(245, 158, 11, 0.45) !important;
-      box-shadow: 0 10px 32px -10px rgba(0, 0, 0, 0.7), 0 0 16px -2px rgba(245, 158, 11, 0.2) !important;
+    body.theme-tactical .nav-tab-active-terminal {
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.25) 0%, rgba(202, 138, 4, 0.15) 100%) !important;
+      border-color: rgba(234, 179, 8, 0.45) !important;
+      color: #facc15 !important;
+      box-shadow: 0 0 16px rgba(234, 179, 8, 0.3) !important;
     }
-    body.theme-amber .bg-obsidian-950 { background-color: #080602 !important; }
-    body.theme-amber .bg-obsidian-900 { background-color: #120d04 !important; }
-    body.theme-amber .bg-obsidian-850 { background-color: #1a1306 !important; }
-    body.theme-amber .bg-obsidian-800 { background-color: #241a08 !important; }
-    body.theme-amber .text-cyan-300 { color: #fde68a !important; }
-    body.theme-amber .text-cyan-400 { color: #fbbf24 !important; }
-    body.theme-amber .bg-cyan-400 { background-color: #f59e0b !important; }
-    body.theme-amber .text-purple-300 { color: #fcd34d !important; }
-    body.theme-amber .text-purple-400 { color: #f59e0b !important; }
+
+    /* Tactical theme SVG sparkline and chart calibration */
+    body.theme-tactical svg polyline[stroke="#22d3ee"],
+    body.theme-tactical svg polyline[stroke="#06b6d4"] {
+      stroke: #4ade80 !important;
+      filter: drop-shadow(0 0 5px rgba(74, 222, 128, 0.5));
+    }
+    body.theme-tactical svg polyline[stroke="#34d399"],
+    body.theme-tactical svg polyline[stroke="#10b981"] {
+      stroke: #22c55e !important;
+      filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.5));
+    }
+    body.theme-tactical svg polyline[stroke="#c084fc"] {
+      stroke: #eab308 !important;
+      filter: drop-shadow(0 0 5px rgba(234, 179, 8, 0.5));
+    }
+    body.theme-tactical svg path[fill="rgba(6, 182, 212, 0.15)"] {
+      fill: rgba(34, 197, 94, 0.16) !important;
+    }
+    body.theme-tactical svg path[fill="rgba(168, 85, 247, 0.15)"] {
+      fill: rgba(234, 179, 8, 0.14) !important;
+    }
+    body.theme-tactical ::-webkit-scrollbar-thumb {
+      background: #142817;
+    }
+    body.theme-tactical ::-webkit-scrollbar-thumb:hover {
+      background: #234828;
+    }
+
+    /* Apple Glass theme SVG sparkline and chart glow */
+    body.theme-apple-glass svg polyline[stroke="#22d3ee"] {
+      stroke: #0a84ff !important;
+      filter: drop-shadow(0 0 6px rgba(10, 132, 255, 0.45));
+    }
+    body.theme-apple-glass svg path[fill="rgba(6, 182, 212, 0.15)"] {
+      fill: rgba(10, 132, 255, 0.18) !important;
+    }
+    body.theme-apple-glass svg polyline[stroke="#c084fc"] {
+      stroke: #bf5af2 !important;
+      filter: drop-shadow(0 0 6px rgba(191, 90, 242, 0.45));
+    }
+    body.theme-apple-glass svg path[fill="rgba(168, 85, 247, 0.15)"] {
+      fill: rgba(191, 90, 242, 0.16) !important;
+    }
+
+    /* Tactical Theme chat & modal terminal output */
+    body.theme-tactical .user-msg-bubble {
+      background: linear-gradient(135deg, #15803d 0%, #166534 100%) !important;
+      border: 1px solid rgba(74, 222, 128, 0.4) !important;
+      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3) !important;
+      color: #f0fdf4 !important;
+    }
+    body.theme-tactical .log-terminal-output {
+      color: #86efac !important;
+      background: #030604 !important;
+      border-top: 1px solid rgba(34, 197, 94, 0.2) !important;
+    }
+
     .glass-input {
       background: rgba(12, 15, 23, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -320,52 +454,56 @@
   <div id="app" class="h-full w-full flex flex-col overflow-hidden">
     
     <!-- Top Bar Global Header (Clean & Uncluttered: Status, Clock, Tabs, Settings) -->
-    <header class="h-16 shrink-0 border-b border-white/[0.08] bg-obsidian-900/80 backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between z-30">
+    <header class="h-16 shrink-0 border-b border-white/[0.08] bg-obsidian-900/75 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between z-30 transition-colors duration-300">
       
-      <!-- Left: Brand & Machine Identity -->
+      <!-- Left: Brand & Machine Identity (Apple Squircle & San Francisco Hierarchy) -->
       <div class="flex items-center space-x-3 sm:space-x-4">
-        <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-          <i data-lucide="server" class="w-5 h-5"></i>
+        <div class="relative flex items-center justify-center w-10 h-10 rounded-[14px] bg-gradient-to-br from-blue-500/25 via-indigo-500/20 to-purple-500/25 border border-white/20 text-cyan-400 shadow-[0_4px_16px_rgba(10,132,255,0.25)] transition-transform hover:scale-105">
+          <i data-lucide="server" class="w-5 h-5 text-cyan-300"></i>
           <span class="absolute -top-1 -right-1 flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_8px_rgba(48,209,88,0.7)]"></span>
           </span>
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <h1 class="font-mono text-sm sm:text-base font-bold tracking-wider text-white">NEO-OPS // QNAP TS-466C</h1>
-            <span class="hidden md:inline-flex px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">{{ system.hostname || 'NAS-HOST' }}</span>
+            <h1 class="font-sans text-sm sm:text-base font-bold tracking-tight text-white flex items-center space-x-1.5">
+              <span>NEO-OPS</span>
+              <span class="text-xs font-normal opacity-40">/</span>
+              <span class="text-xs font-medium text-slate-300">QNAP TS-466C</span>
+            </h1>
+            <span class="hidden md:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/15 text-blue-300 border border-blue-500/25">{{ system.hostname || 'NAS-HOST' }}</span>
           </div>
-          <p class="hidden sm:block text-[11px] font-mono text-slate-400">{{ system.cpu_model || 'Intel Pentium Silver N6005 @ 2.00GHz' }} · QTS 64-bit Linux</p>
+          <p class="hidden sm:block text-[11px] font-sans text-slate-400 tracking-tight">{{ system.cpu_model || 'Intel Pentium Silver N6005 @ 2.00GHz' }} · QTS 64-bit Linux</p>
         </div>
       </div>
 
       <!-- Center: Main Two-Page Navigation Tabs -->
-      <div class="flex items-center rounded-xl bg-obsidian-950 p-1 border border-white/[0.08] shadow-inner font-mono text-xs">
+      <div class="flex items-center rounded-xl bg-obsidian-950/80 p-1 border border-white/[0.08] shadow-inner font-sans text-xs">
         
         <!-- Tab 1: System Telemetry & Hub -->
         <button @click="setTab('dashboard')" 
                 :class="currentTab === 'dashboard' 
-                  ? 'bg-cyan-500/15 border-cyan-400/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.2)] font-semibold' 
+                  ? 'nav-tab-active-dashboard font-semibold' 
                   : 'text-slate-400 hover:text-slate-200 border-transparent'"
-                class="flex items-center space-x-2 px-3.5 sm:px-4 py-1.5 rounded-lg border transition duration-200"
+                class="flex items-center space-x-2 px-3.5 sm:px-4 py-1.5 rounded-lg border transition-all duration-200 apple-spring"
                 title="系统遥测与服务导航 (快捷键: 1)">
           <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
           <span class="tracking-wide">系统监控与服务</span>
-          <span class="hidden lg:inline-block text-[10px] opacity-60 bg-white/10 px-1.5 py-0.2 rounded">1</span>
+          <span class="hidden lg:inline-block text-[10px] opacity-60 bg-white/10 px-1.5 py-0.2 rounded font-mono">1</span>
         </button>
 
         <!-- Tab 2: Intelligent Ops Terminal -->
         <button @click="setTab('terminal')" 
                 :class="currentTab === 'terminal' 
-                  ? 'bg-purple-500/15 border-purple-400/40 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)] font-semibold' 
+                  ? 'nav-tab-active-terminal font-semibold' 
                   : 'text-slate-400 hover:text-slate-200 border-transparent'"
-                class="flex items-center space-x-2 px-3.5 sm:px-4 py-1.5 rounded-lg border transition duration-200 relative"
+                class="flex items-center space-x-2 px-3.5 sm:px-4 py-1.5 rounded-lg border transition-all duration-200 apple-spring relative"
                 title="智能运维终端 (快捷键: 2)">
           <i data-lucide="bot" class="w-4 h-4"></i>
           <span class="tracking-wide">智能运维终端</span>
           <span v-if="system.cpu_telemetry?.is_overheat" class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-          <span class="hidden lg:inline-block text-[10px] opacity-60 bg-white/10 px-1.5 py-0.2 rounded">2</span>
+          <span class="hidden lg:inline-block text-[10px] opacity-60 bg-white/10 px-1.5 py-0.2 rounded font-mono">2</span>
         </button>
 
       </div>
@@ -399,44 +537,31 @@
           <span>系统健康 良好</span>
         </div>
 
-        <!-- Theme Switcher Trigger & Floating Menu -->
-        <div class="relative theme-switcher-container">
-          <button @click="showThemeMenu = !showThemeMenu" 
-                  class="p-2 rounded-lg bg-obsidian-850 hover:bg-obsidian-800 border border-white/[0.08] hover:border-cyan-500/30 text-slate-300 hover:text-cyan-300 transition flex items-center space-x-1.5" 
-                  title="切换视觉主题 (已支持 5 套全景风格)">
-            <i data-lucide="palette" class="w-4 h-4 text-cyan-400"></i>
-            <span class="hidden xl:inline text-xs font-mono font-medium">{{ getThemeName(currentTheme) }}</span>
+        <!-- Dual Visual Theme Engine: 苹果晶透 vs 战术雷达 Segmented Control -->
+        <div class="flex items-center p-1 rounded-xl bg-obsidian-950/80 border border-white/[0.08] shadow-inner font-sans text-xs">
+          <!-- Theme 1: 苹果晶透 -->
+          <button @click="selectTheme('apple-glass')" 
+                  :class="currentTheme === 'apple-glass' 
+                    ? 'bg-gradient-to-r from-blue-500/25 to-indigo-500/20 text-blue-300 border-blue-400/40 shadow-[0_0_14px_rgba(10,132,255,0.3)] font-semibold' 
+                    : 'text-slate-400 hover:text-slate-200 border-transparent'"
+                  class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 rounded-lg border transition-all duration-200 apple-spring"
+                  title="切换至「苹果晶透」主题 (macOS 液态磨砂 · 柔光高透)">
+            <span class="w-2 h-2 rounded-full bg-[#0a84ff] shadow-[0_0_6px_#0a84ff] shrink-0"></span>
+            <span class="hidden sm:inline font-medium">苹果晶透</span>
+            <span class="sm:hidden font-medium">晶透</span>
           </button>
 
-          <!-- Floating Theme Selection Menu -->
-          <div v-if="showThemeMenu" 
-               class="absolute right-0 mt-2 w-60 p-2 rounded-xl glass-card bg-obsidian-900/95 border border-white/15 shadow-2xl z-50 space-y-1 backdrop-blur-xl">
-            <div class="px-2.5 py-1.5 text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-white/[0.08] flex items-center justify-between">
-              <span>视觉主题引擎</span>
-              <span class="text-cyan-400">5 套风格</span>
-            </div>
-            
-            <button v-for="t in availableThemes" :key="t.id"
-                    @click="selectTheme(t.id)"
-                    class="w-full px-2.5 py-2 rounded-lg flex items-center justify-between transition text-left group"
-                    :class="currentTheme === t.id ? 'bg-cyan-500/15 text-white font-semibold border border-cyan-500/30' : 'hover:bg-white/[0.05] text-slate-300 border border-transparent'">
-              <div class="flex items-center space-x-2.5">
-                <span class="flex items-center space-x-1 shrink-0">
-                  <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: t.primary }"></span>
-                  <span class="w-2 h-2 rounded-full opacity-70" :style="{ backgroundColor: t.secondary }"></span>
-                </span>
-                <div>
-                  <div class="text-xs font-mono leading-tight flex items-center space-x-1.5">
-                    <span>{{ t.name }}</span>
-                    <span v-if="t.id === 'titanium'" class="text-[9px] px-1 py-0.2 rounded bg-white/10 text-slate-300">极简</span>
-                    <span v-if="t.id === 'nord'" class="text-[9px] px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300">护眼</span>
-                  </div>
-                  <div class="text-[10px] font-mono text-slate-400 leading-tight mt-0.5">{{ t.tag }}</div>
-                </div>
-              </div>
-              <i v-if="currentTheme === t.id" data-lucide="check" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
-            </button>
-          </div>
+          <!-- Theme 2: 战术雷达 -->
+          <button @click="selectTheme('tactical')" 
+                  :class="currentTheme === 'tactical' 
+                    ? 'bg-gradient-to-r from-emerald-500/25 to-green-500/20 text-emerald-300 border-emerald-400/40 shadow-[0_0_14px_rgba(34,197,94,0.35)] font-semibold' 
+                    : 'text-slate-400 hover:text-slate-200 border-transparent'"
+                  class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 rounded-lg border transition-all duration-200 apple-spring"
+                  title="切换至「战术雷达」主题 (军规夜视全息 · 战术微光)">
+            <span class="w-2 h-2 rounded-full bg-[#22c55e] shadow-[0_0_6px_#22c55e] shrink-0"></span>
+            <span class="hidden sm:inline font-medium">战术雷达</span>
+            <span class="sm:hidden font-medium">雷达</span>
+          </button>
         </div>
 
         <!-- Settings Modal Trigger -->
@@ -450,13 +575,14 @@
 
     </header>
 
-    <!-- Floating Alert Toast Notification -->
-    <transition name="fade">
+    <!-- Floating Dynamic Island Alert Toast Notification (iOS 18 Island Style) -->
+    <transition name="island">
       <div v-if="toast.show" 
-           class="fixed top-20 right-6 z-50 flex items-center space-x-2 px-4 py-3 rounded-xl border backdrop-blur-xl shadow-2xl text-xs font-mono transition-all"
-           :class="toast.type === 'error' ? 'bg-rose-950/90 border-rose-500/50 text-rose-200' : 'bg-obsidian-900/95 border-cyan-500/40 text-cyan-200'">
-        <i :data-lucide="toast.type === 'error' ? 'alert-circle' : 'check-circle-2'" class="w-4 h-4"></i>
-        <span>{{ toast.message }}</span>
+           class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center space-x-2.5 px-5 py-2.5 rounded-full border border-white/20 bg-black/85 dark:bg-[#161922]/90 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.5)] text-xs font-sans font-medium text-white select-none"
+           :class="toast.type === 'error' ? 'border-rose-500/40 text-rose-200' : 'border-white/20 text-white'">
+        <span class="w-2 h-2 rounded-full shadow-[0_0_8px]" :class="toast.type === 'error' ? 'bg-rose-500 shadow-rose-500' : 'bg-emerald-400 shadow-emerald-400'"></span>
+        <i :data-lucide="toast.type === 'error' ? 'alert-circle' : 'check-circle-2'" class="w-4 h-4" :class="toast.type === 'error' ? 'text-rose-400' : 'text-emerald-400'"></i>
+        <span class="tracking-tight">{{ toast.message }}</span>
       </div>
     </transition>
 
@@ -474,7 +600,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             <!-- Card 1: 2.5GbE Network Card Throughput & Saturation -->
-            <div class="glass-card rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-mono text-slate-300 tracking-wider">2.5GbE 网络吞吐</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 flex items-center space-x-1">
@@ -546,7 +672,7 @@
             </div>
 
             <!-- Card 2: CPU Multi-Core & Thermal Telemetry (Balanced Symmetry & Heatmap) -->
-            <div class="glass-card rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3"
+            <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3"
                  :class="{'border-rose-500/60 shadow-[0_0_20px_rgba(244,63,94,0.3)] bg-rose-950/20': system.cpu_telemetry?.is_overheat}">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-mono text-slate-300 tracking-wider">CPU 负荷 & 多核温控</span>
@@ -600,7 +726,7 @@
             </div>
 
             <!-- Card 3: Physical Memory RAM (Segmented Composite Bar & Health Alert Integration) -->
-            <div class="glass-card rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-mono text-slate-300 tracking-wider">物理内存状态</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono border transition-colors duration-300"
@@ -686,7 +812,7 @@
             </div>
 
             <!-- Card 4: Load Average (Comparative 3-Interval Gauges & Directional Trends) -->
-            <div class="glass-card rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-mono text-slate-300 tracking-wider">系统平均负载</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border flex items-center space-x-1 transition-all"
@@ -766,7 +892,7 @@
           </div>
 
           <!-- Row 2: Hard Disks Array & S.M.A.R.T Thermal Matrix (WCAG High Contrast, Semantics Aligned, Dashed Empty Slot) -->
-          <div class="glass-card rounded-xl p-4 sm:p-5 space-y-4">
+          <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
               <div class="flex items-center space-x-2.5">
                 <i data-lucide="hard-drive" class="w-4 h-4 text-cyan-400"></i>
@@ -836,7 +962,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             <!-- Left: Unified NAS Applications & Download Engine Hub -->
-            <div class="glass-card rounded-xl p-4 sm:p-5 space-y-4 border border-cyan-500/20 flex flex-col justify-between">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4 border border-cyan-500/20 flex flex-col justify-between">
               
               <!-- Section Header -->
               <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
@@ -924,26 +1050,26 @@
                 </div>
               </div>
 
-              <!-- qB Action Buttons Strip (With Offline Safety Interlock) -->
+              <!-- qB Action Buttons Strip (Apple Control Center Pill Buttons) -->
               <div class="grid grid-cols-3 gap-2">
                 <button @click="triggerQbAction('pause_all')" :disabled="!qbStatus.online || qbActionLoading" 
                         :title="qbStatus.online ? '暂停所有下载任务' : 'qB 离线中，无法下发指令'"
-                        :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : 'hover:text-amber-300'"
-                        class="flex items-center justify-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-obsidian-850 hover:bg-obsidian-800 border border-white/[0.08] text-xs font-mono text-slate-200 transition">
+                        :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10 hover:text-amber-300 active:scale-95'"
+                        class="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs font-sans font-medium text-slate-200 transition-all apple-spring">
                   <i data-lucide="pause" class="w-3.5 h-3.5 text-amber-400"></i>
                   <span>暂停全部</span>
                 </button>
                 <button @click="triggerQbAction('resume_all')" :disabled="!qbStatus.online || qbActionLoading" 
                         :title="qbStatus.online ? '恢复所有下载任务' : 'qB 离线中，无法下发指令'"
-                        :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : 'hover:text-emerald-300'"
-                        class="flex items-center justify-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-obsidian-850 hover:bg-obsidian-800 border border-white/[0.08] text-xs font-mono text-slate-200 transition">
+                        :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10 hover:text-emerald-300 active:scale-95'"
+                        class="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs font-sans font-medium text-slate-200 transition-all apple-spring">
                   <i data-lucide="play" class="w-3.5 h-3.5 text-emerald-400"></i>
                   <span>继续全部</span>
                 </button>
                 <button @click="triggerQbAction('toggle_speed_limit')" :disabled="!qbStatus.online || qbActionLoading" 
                         :title="qbStatus.online ? '切换慢速备用限速' : 'qB 离线中，无法下发指令'"
-                        :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : (qbStatus.alt_speed_mode ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'bg-obsidian-850 border-white/[0.08] text-slate-200 hover:text-cyan-300')"
-                        class="flex items-center justify-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition">
+                        :class="!qbStatus.online ? 'opacity-40 cursor-not-allowed' : (qbStatus.alt_speed_mode ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_14px_rgba(245,158,11,0.25)]' : 'bg-white/[0.05] border-white/[0.08] text-slate-200 hover:bg-white/10 hover:text-cyan-300 active:scale-95')"
+                        class="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-full border text-xs font-sans font-medium transition-all apple-spring">
                   <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
                   <span>{{ qbStatus.alt_speed_mode ? '限速生效中' : '慢速模式' }}</span>
                 </button>
@@ -957,13 +1083,18 @@
                 </div>
                 <div class="grid grid-cols-3 gap-2.5">
                   <a v-for="app in ecosystem" :key="app.name" :href="getAppUrl(app)" target="_blank"
-                     class="p-2.5 rounded-xl bg-obsidian-850/90 hover:bg-obsidian-800 border border-white/[0.08] hover:border-purple-500/40 transition flex flex-col justify-between space-y-1.5 group">
+                     class="p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 transition-all apple-spring flex flex-col justify-between space-y-2 group active:scale-95 shadow-sm hover:shadow-md">
                     <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold text-slate-100 group-hover:text-cyan-300 transition font-mono">{{ app.name }}</span>
-                      <span class="w-2 h-2 rounded-full" :class="app.status === 'online' ? 'bg-emerald-400' : 'bg-amber-400'"></span>
+                      <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-[10px] bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-cyan-300 group-hover:scale-105 transition-transform">
+                          <i data-lucide="app-window" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <span class="text-xs font-bold text-white group-hover:text-blue-300 transition font-sans">{{ app.name }}</span>
+                      </div>
+                      <span class="w-2 h-2 rounded-full shadow-[0_0_6px]" :class="app.status === 'online' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-amber-400 shadow-amber-400'"></span>
                     </div>
                     <div>
-                      <div class="text-[11px] font-mono text-slate-300 font-medium">{{ app.tag }}</div>
+                      <div class="text-[11px] font-sans text-slate-300 font-medium">{{ app.tag }}</div>
                       <div class="text-[10px] font-mono text-slate-400">{{ app.version }}</div>
                     </div>
                   </a>
@@ -973,7 +1104,7 @@
             </div>
 
             <!-- Right: Live Telemetry Historical Trends (Calibrated Sparklines & Peaks) -->
-            <div class="glass-card rounded-xl p-4 sm:p-5 space-y-4 border border-purple-500/20 flex flex-col justify-between">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-4 border border-purple-500/20 flex flex-col justify-between">
               
               <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
                 <div class="flex items-center space-x-2.5">
@@ -1074,7 +1205,7 @@
           </div>
 
           <!-- Row 4: Storage Pools & Cloud Drives -->
-          <div class="glass-card rounded-xl p-4 sm:p-5 space-y-3.5">
+          <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3.5">
             <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
               <div class="flex items-center space-x-2.5">
                 <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
@@ -1138,7 +1269,7 @@
 
             <!-- Container Grid (Responsive Widescreen Grid up to 4 columns) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-              <div v-for="c in filteredContainers" :key="c.id" class="glass-card rounded-xl p-4 flex flex-col justify-between space-y-3">
+              <div v-for="c in filteredContainers" :key="c.id" class="glass-card rounded-2xl p-4 flex flex-col justify-between space-y-3">
                 <div>
                   <div class="flex items-start justify-between mb-1.5">
                     <div class="flex items-center space-x-2">
@@ -1313,12 +1444,20 @@
         <!-- Right Main Interactive Console Feed -->
         <div class="flex-1 flex flex-col h-full overflow-hidden">
           
-          <!-- Terminal Header -->
-          <div class="h-14 border-b border-white/[0.08] px-4 sm:px-6 flex items-center justify-between bg-obsidian-900/70 backdrop-blur-md shrink-0">
+          <!-- Terminal Header (macOS Window Chrome) -->
+          <div class="h-14 border-b border-white/[0.08] px-4 sm:px-6 flex items-center justify-between bg-obsidian-900/70 backdrop-blur-xl shrink-0">
             <div class="flex items-center space-x-3">
-              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span class="font-mono text-xs font-bold tracking-wider text-slate-100 uppercase">NEO-OPS // 极客智能运维终端</span>
-              <span class="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">宿主机直连通道</span>
+              <div class="mac-dots mr-1">
+                <span class="mac-dot mac-dot-red"></span>
+                <span class="mac-dot mac-dot-yellow"></span>
+                <span class="mac-dot mac-dot-green"></span>
+              </div>
+              <span class="font-sans text-xs font-bold tracking-tight text-white flex items-center space-x-1.5">
+                <span>NEO-OPS</span>
+                <span class="text-xs font-normal opacity-40">/</span>
+                <span class="text-xs text-slate-300 font-medium">智能运维终端</span>
+              </span>
+              <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/15 text-blue-300 border border-blue-500/25">宿主机直连通道</span>
             </div>
             
             <div class="flex items-center space-x-2">
@@ -1355,13 +1494,13 @@
                 <span class="text-slate-400">{{ msg.time }}</span>
               </div>
 
-              <!-- Message Bubble -->
-              <div class="rounded-xl px-4 py-3 text-xs leading-relaxed" 
+              <!-- Message Bubble (Apple iMessage & Intelligence Glass Bubble) -->
+              <div class="px-4 py-3 text-xs leading-relaxed transition-all apple-spring" 
                    :class="msg.role === 'user' 
-                     ? 'ml-auto bg-gradient-to-br from-cyan-600/20 to-purple-600/20 border border-cyan-500/30 text-slate-100 font-sans max-w-[85%]' 
-                     : 'mr-auto glass-card text-slate-200 font-sans prose-geek w-full border border-white/[0.08] shadow-lg'">
+                     ? 'ml-auto user-msg-bubble bg-gradient-to-br from-[#0a84ff] to-[#0071e3] text-white font-sans rounded-2xl rounded-tr-md shadow-[0_4px_14px_rgba(10,132,255,0.35)] max-w-[85%]' 
+                     : 'mr-auto glass-card text-slate-100 font-sans prose-geek w-full rounded-2xl rounded-tl-md border border-white/[0.12] shadow-[0_8px_24px_rgba(0,0,0,0.3)]'">
                 <div v-if="msg.role === 'assistant'" v-html="renderMarkdown(msg.content)"></div>
-                <div v-else class="whitespace-pre-wrap font-medium">{{ msg.content }}</div>
+                <div v-else class="whitespace-pre-wrap font-medium select-text">{{ msg.content }}</div>
               </div>
 
               <!-- Action button on Assistant Message -->
@@ -1513,20 +1652,21 @@
                 </button>
               </div>
 
-              <!-- Input Form -->
-              <form @submit.prevent="sendMessage" class="flex items-end space-x-2.5">
+              <!-- Input Form (iOS Spotlight Search Pill Design) -->
+              <form @submit.prevent="sendMessage" class="flex items-center space-x-2.5">
                 <div class="flex-1 relative">
                   <textarea 
                     v-model="inputMessage" 
                     @keydown.enter.exact.prevent="sendMessage"
                     rows="1" 
                     placeholder="下发运维指令或与 AI 对话 (例如: 暂停下载, 查下硬盘温度, 重启 jellyfin, 存储池容量...)" 
-                    class="w-full glass-input rounded-xl px-4 py-3 text-xs text-slate-100 placeholder-slate-400 font-sans resize-none max-h-32 focus:ring-0">
+                    class="w-full glass-input rounded-2xl px-4 py-3 text-xs text-slate-100 placeholder-slate-400 font-sans resize-none max-h-32 focus:ring-2 focus:ring-blue-500/40 border-white/15 backdrop-blur-xl">
                   </textarea>
                 </div>
                 <button type="submit" :disabled="chatLoading || !inputMessage.trim()" 
-                        class="h-11 px-5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-obsidian-950 font-bold text-xs flex items-center justify-center transition disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                  <i data-lucide="send" class="w-4 h-4"></i>
+                        class="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-[#0a84ff] to-[#bf5af2] hover:opacity-95 text-white font-bold text-xs flex items-center justify-center transition-all apple-spring disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_4px_16px_rgba(10,132,255,0.4)] active:scale-95"
+                        title="发送指令 (Enter)">
+                  <i data-lucide="arrow-up" class="w-4 h-4 text-white stroke-[2.5]"></i>
                 </button>
               </form>
               
@@ -1549,11 +1689,18 @@
     <div v-if="showLogsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div class="glass-card rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-white/[0.15]">
         <div class="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between bg-obsidian-900/80">
-          <div class="flex items-center space-x-3">
-            <i data-lucide="terminal" class="w-5 h-5 text-cyan-400"></i>
+          <div class="flex items-center space-x-4">
+            <div class="mac-dots">
+              <span @click="showLogsModal = false" class="mac-dot mac-dot-red cursor-pointer" title="关闭"></span>
+              <span class="mac-dot mac-dot-yellow opacity-75"></span>
+              <span class="mac-dot mac-dot-green opacity-75"></span>
+            </div>
             <div>
-              <h3 class="font-mono text-sm font-bold text-white tracking-wide">容器实时运行日志 // {{ activeContainer?.name }}</h3>
-              <p class="text-xs font-mono text-slate-400">{{ activeContainer?.image }}</p>
+              <h3 class="font-sans text-sm font-bold text-white tracking-tight flex items-center space-x-2">
+                <span>{{ activeContainer?.name }}</span>
+                <span class="text-xs font-normal text-slate-400 font-mono">运行日志</span>
+              </h3>
+              <p class="text-[11px] font-mono text-slate-400">{{ activeContainer?.image }}</p>
             </div>
           </div>
           <div class="flex items-center space-x-2">
@@ -1568,7 +1715,7 @@
             </button>
           </div>
         </div>
-        <div class="p-4 flex-1 overflow-auto bg-obsidian-950 font-mono text-xs text-slate-300 leading-relaxed select-text">
+        <div class="p-4 flex-1 overflow-auto bg-obsidian-950 font-mono text-xs text-slate-300 leading-relaxed select-text log-terminal-output">
           <pre class="whitespace-pre-wrap">{{ containerLogs }}</pre>
         </div>
       </div>
@@ -1580,9 +1727,13 @@
     <div v-if="showSettings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div class="glass-card rounded-2xl w-full max-w-lg overflow-hidden border border-white/[0.15]">
         <div class="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between bg-obsidian-900/80">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="sliders-horizontal" class="w-5 h-5 text-cyan-400"></i>
-            <h3 class="font-mono text-sm font-bold text-white tracking-wide">中控中枢与 AI 参数配置</h3>
+          <div class="flex items-center space-x-3">
+            <div class="mac-dots">
+              <span @click="showSettings = false" class="mac-dot mac-dot-red cursor-pointer" title="关闭"></span>
+              <span class="mac-dot mac-dot-yellow opacity-75"></span>
+              <span class="mac-dot mac-dot-green opacity-75"></span>
+            </div>
+            <h3 class="font-sans text-sm font-bold text-white tracking-tight ml-2">中控中枢与 AI 参数配置</h3>
           </div>
           <button @click="showSettings = false" class="p-1.5 rounded-lg bg-obsidian-800 hover:bg-obsidian-700 text-slate-300 transition">
             <i data-lucide="x" class="w-4 h-4"></i>
@@ -1644,35 +1795,36 @@
         // Page tab state ('dashboard' or 'terminal')
         const currentTab = ref(localStorage.getItem('neo_ops_tab') || 'dashboard');
 
-        // Multi-Theme Engine
-        const currentTheme = ref(localStorage.getItem('neo_ops_theme') || 'obsidian');
+        // Multi-Theme Engine: Exclusively 'apple-glass' and 'tactical'
+        const rawSaved = localStorage.getItem('neo_ops_theme');
+        const initialTheme = (rawSaved === 'tactical' || rawSaved === 'apple-glass') ? rawSaved : 'apple-glass';
+        const currentTheme = ref(initialTheme);
         const showThemeMenu = ref(false);
 
         const availableThemes = [
-          { id: 'obsidian', name: '曜石赛博', tag: '经典深邃霓虹', primary: '#22d3ee', secondary: '#a855f7' },
-          { id: 'titanium', name: '钛金工业', tag: 'Linear 冷钛哑光', primary: '#38bdf8', secondary: '#94a3b8' },
-          { id: 'nord', name: '北欧极光', tag: 'Nord 护眼极客', primary: '#88c0d0', secondary: '#a3be8c' },
-          { id: 'tactical', name: '战术雷达', tag: '军规夜视荧光', primary: '#4ade80', secondary: '#eab308' },
-          { id: 'amber', name: '复古琥珀', tag: '80s 极客终端', primary: '#f59e0b', secondary: '#fbbf24' }
+          { id: 'apple-glass', name: '苹果晶透', tag: 'macOS 液态高透磨砂', primary: '#0a84ff', secondary: '#bf5af2', desc: 'macOS 拟真液态磨砂 · 柔光晶莹 · 极致优雅' },
+          { id: 'tactical', name: '战术雷达', tag: '军规夜视全息', primary: '#22c55e', secondary: '#eab308', desc: '军工深黑 · 夜视荧光 · 战术全息雷达' }
         ];
 
         const getThemeName = (id) => {
           const found = availableThemes.find(t => t.id === id);
-          return found ? found.name : '主题';
+          return found ? found.name : '苹果晶透';
         };
 
         const applyTheme = (themeId) => {
-          const themeClasses = ['theme-obsidian', 'theme-titanium', 'theme-nord', 'theme-tactical', 'theme-amber'];
+          const validTheme = (themeId === 'tactical') ? 'tactical' : 'apple-glass';
+          const themeClasses = ['theme-apple-glass', 'theme-apple-light', 'theme-obsidian', 'theme-titanium', 'theme-nord', 'theme-tactical', 'theme-amber'];
           themeClasses.forEach(cls => document.body.classList.remove(cls));
-          document.body.classList.add(`theme-${themeId}`);
+          document.body.classList.add(`theme-${validTheme}`);
         };
 
         const selectTheme = (themeId) => {
-          currentTheme.value = themeId;
-          localStorage.setItem('neo_ops_theme', themeId);
-          applyTheme(themeId);
+          const target = (themeId === 'tactical') ? 'tactical' : 'apple-glass';
+          currentTheme.value = target;
+          localStorage.setItem('neo_ops_theme', target);
+          applyTheme(target);
           showThemeMenu.value = false;
-          showToast(`已切换至「${getThemeName(themeId)}」主题`);
+          showToast(`已切换至「${getThemeName(target)}」主题`);
           nextTick(() => lucide.createIcons());
         };
 
@@ -2128,16 +2280,11 @@
         };
 
         onMounted(() => {
-          const savedTheme = localStorage.getItem('neo_ops_theme') || 'obsidian';
-          currentTheme.value = savedTheme;
-          applyTheme(savedTheme);
-
-          // Close theme dropdown when clicking outside
-          window.addEventListener('click', (e) => {
-            if (!e.target.closest('.theme-switcher-container')) {
-              showThemeMenu.value = false;
-            }
-          });
+          const rawSavedTheme = localStorage.getItem('neo_ops_theme');
+          const finalTheme = (rawSavedTheme === 'tactical' || rawSavedTheme === 'apple-glass') ? rawSavedTheme : 'apple-glass';
+          currentTheme.value = finalTheme;
+          localStorage.setItem('neo_ops_theme', finalTheme);
+          applyTheme(finalTheme);
 
           fetchData();
           fetchSettings();
