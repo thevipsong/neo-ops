@@ -2,7 +2,8 @@ FROM python:3.11-alpine
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir fastapi uvicorn httpx
+RUN apk add --no-cache util-linux procps \
+    && pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple fastapi uvicorn httpx
 
 COPY app.py .
 COPY static ./static
